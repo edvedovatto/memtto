@@ -14,6 +14,7 @@ export default function HomePage() {
   const [contexts, setContexts] = useState<string[]>([]);
   const [favorites, setFavorites] = useState<Entry[]>([]);
   const [loading, setLoading] = useState(false);
+  const [favScrolled, setFavScrolled] = useState(false);
 
   const isActive = query.length >= 2;
 
@@ -103,7 +104,16 @@ export default function HomePage() {
         {/* Favorites strip — below search bar, only when idle */}
         {!showResults && favorites.length > 0 && (
           <div className="relative mt-4 w-full max-w-[720px] fade-in-up">
-            <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
+            <div
+              className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide scroll-smooth"
+              onScroll={(e) => setFavScrolled(e.currentTarget.scrollLeft > 0)}
+              onWheel={(e) => {
+                if (e.deltaY !== 0) {
+                  e.currentTarget.scrollBy({ left: e.deltaY, behavior: "smooth" });
+                  e.preventDefault();
+                }
+              }}
+            >
               {favorites.map((fav) => (
                 <Link
                   key={fav.id}
@@ -114,7 +124,8 @@ export default function HomePage() {
                 </Link>
               ))}
             </div>
-            {/* Fade on right edge */}
+            {/* Fade on edges */}
+            {favScrolled && <div className="pointer-events-none absolute left-0 top-0 h-full w-12 bg-gradient-to-r from-background to-transparent" />}
             <div className="pointer-events-none absolute right-0 top-0 h-full w-12 bg-gradient-to-l from-background to-transparent" />
           </div>
         )}
