@@ -51,7 +51,7 @@ export const EntryCard = memo(function EntryCard({ entry }: { entry: Entry }) {
 
   return (
     <Link href={`/entry/${entry.slug}`}>
-      <div className="group overflow-hidden rounded-xl border border-border bg-surface transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-surface-hover hover:-translate-y-[2px] hover:shadow-lg hover:shadow-black/20">
+      <div className="group overflow-hidden rounded-xl border border-border bg-surface transition-colors duration-200 hover:bg-surface-hover">
         {/* Banner image for wide/ultrawide images */}
         {hasImage && imageLayout === "top" && (
           <div className="overflow-hidden">

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ImagePlus, X, Star, ChevronDown, AlignLeft, ListChecks, Plus } from "lucide-react";
 import Link from "next/link";
@@ -32,6 +33,8 @@ export default function NewEntryPage() {
   const [tagInput, setTagInput] = useState("");
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imageName, setImageName] = useState("");
+  const [showImagePreview, setShowImagePreview] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [rating, setRating] = useState<number | null>(null);
@@ -40,11 +43,13 @@ export default function NewEntryPage() {
   const [checklistItems, setChecklistItems] = useState<string[]>([]);
   const [checklistInput, setChecklistInput] = useState("");
 
-  // Context creatable select
+  // Context dropdown + create
   const [contexts, setContexts] = useState<string[]>([]);
   const [contextOpen, setContextOpen] = useState(false);
+  const [showNewContext, setShowNewContext] = useState(false);
+  const [newContextValue, setNewContextValue] = useState("");
   const contextRef = useRef<HTMLDivElement>(null);
-  const contextInputRef = useRef<HTMLInputElement>(null);
+  const newContextRef = useRef<HTMLInputElement>(null);
   const tagInputRef = useRef<HTMLInputElement>(null);
   const checklistInputRef = useRef<HTMLInputElement>(null);
   const typeRef = useRef<HTMLDivElement>(null);
@@ -72,11 +77,13 @@ export default function NewEntryPage() {
     if (!file) return;
     setImageFile(file);
     setImagePreview(URL.createObjectURL(file));
+    setImageName(file.name);
   }
 
   function removeImage() {
     setImageFile(null);
     setImagePreview(null);
+    setImageName("");
   }
 
   function handleTagKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
@@ -118,11 +125,17 @@ export default function NewEntryPage() {
   function selectContext(value: string) {
     setContext(value);
     setContextOpen(false);
-    contextInputRef.current?.blur();
-    // Add to local list if new
+  }
+
+  function confirmNewContext() {
+    const value = newContextValue.trim();
+    if (!value) return;
     if (!contexts.some((c) => c.toLowerCase() === value.toLowerCase())) {
       setContexts((prev) => [...prev, value].sort());
     }
+    setContext(value);
+    setShowNewContext(false);
+    setNewContextValue("");
   }
 
   function addChecklistItem() {
@@ -201,26 +214,18 @@ export default function NewEntryPage() {
     }
   }
 
-  const filteredContexts = contexts.filter((c) =>
-    c.toLowerCase().includes(context.toLowerCase())
-  );
-  const showCreateOption =
-    context.trim() !== "" &&
-    !contexts.some((c) => c.toLowerCase() === context.trim().toLowerCase());
-
   const inputClass =
     "w-full rounded-lg border border-border bg-secondary px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring";
 
   return (
+    <>
     <form onSubmit={handleSubmit} className="space-y-4 fade-in-up">
-      {/* Header with back */}
-      <div className="space-y-2">
+      <div className="flex items-center gap-3">
         <Link
           href="/"
-          className="btn-press inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground"
+          className="btn-press inline-flex items-center justify-center rounded-lg border border-border p-2 text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground"
         >
           <ArrowLeft className="h-4 w-4" />
-          Back
         </Link>
         <h1 className="text-lg font-semibold text-foreground">New entry</h1>
       </div>
@@ -332,198 +337,241 @@ export default function NewEntryPage() {
         </div>
       )}
 
-      {/* Context + Type */}
-      <div className="grid grid-cols-2 gap-3">
-        {/* Context — Creatable Select */}
-        <div ref={contextRef} className="relative">
-          <div className="flex items-center rounded-lg border border-border bg-secondary focus-within:ring-2 focus-within:ring-ring">
+      {/* Metadata + Image */}
+      <div className="grid grid-cols-2 gap-3 items-start">
+        {/* Left: Metadata fields stacked */}
+        <div className="space-y-3">
+          {/* Context — Dropdown + Create */}
+          <div>
+            <div className="flex gap-1.5">
+              <div ref={contextRef} className="relative flex-1">
+                <button
+                  type="button"
+                  onClick={() => setContextOpen(!contextOpen)}
+                  className="flex w-full items-center justify-between rounded-lg border border-border bg-secondary px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                >
+                  <span className={context ? "text-foreground" : "text-muted-foreground"}>
+                    {context || "Context"}
+                  </span>
+                  <ChevronDown className={`h-3.5 w-3.5 text-muted-foreground transition-transform ${contextOpen ? "rotate-180" : ""}`} />
+                </button>
+                {contextOpen && contexts.length > 0 && (
+                  <div
+                    className="absolute left-0 right-0 top-full z-50 mt-1 max-h-[160px] animate-slide-down-fade overflow-y-auto rounded-lg border border-border bg-surface py-1 shadow-lg scrollbar-hide"
+                    style={{ boxShadow: "inset 0 -12px 8px -8px rgba(0,0,0,0.4)" }}
+                  >
+                    {contexts.map((ctx) => (
+                      <button
+                        key={ctx}
+                        type="button"
+                        onClick={() => selectContext(ctx)}
+                        className={`block w-full px-4 py-2 text-left text-sm transition-colors ${
+                          context === ctx
+                            ? "bg-surface-hover text-foreground"
+                            : "text-muted-foreground hover:bg-surface-hover hover:text-foreground"
+                        }`}
+                      >
+                        {ctx}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowNewContext(true);
+                  setTimeout(() => newContextRef.current?.focus(), 0);
+                }}
+                className="flex h-[44px] w-[44px] flex-shrink-0 items-center justify-center rounded-lg border border-border bg-secondary text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground"
+              >
+                <Plus className="h-4 w-4" />
+              </button>
+            </div>
+            {showNewContext && (
+              <div className="mt-1.5 flex gap-1.5">
+                <input
+                  ref={newContextRef}
+                  type="text"
+                  value={newContextValue}
+                  onChange={(e) => {
+                    if (e.target.value.length <= CONTEXT_MAX) setNewContextValue(e.target.value);
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") { e.preventDefault(); confirmNewContext(); }
+                    if (e.key === "Escape") { setShowNewContext(false); setNewContextValue(""); }
+                  }}
+                  placeholder="New context..."
+                  maxLength={CONTEXT_MAX}
+                  className="flex-1 rounded-lg border border-border bg-secondary px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                />
+                <button
+                  type="button"
+                  onClick={confirmNewContext}
+                  disabled={!newContextValue.trim()}
+                  className="rounded-lg bg-foreground px-3 py-2.5 text-sm font-medium text-background transition-all hover:opacity-90 disabled:opacity-50"
+                >
+                  Add
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setShowNewContext(false); setNewContextValue(""); }}
+                  className="rounded-lg border border-border px-2.5 py-2.5 text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Tags */}
+          <div className="flex flex-wrap items-center gap-2 rounded-lg border border-border bg-secondary px-4 py-2.5 focus-within:ring-2 focus-within:ring-ring">
+            {tags.map((tag) => (
+              <span
+                key={tag}
+                className="inline-flex items-center gap-1 rounded-full bg-surface-hover px-2.5 py-1 text-xs text-foreground"
+              >
+                #{tag}
+                <button
+                  type="button"
+                  onClick={() => removeTag(tag)}
+                  className="ml-0.5 rounded-full p-0.5 text-muted-foreground hover:text-foreground"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </span>
+            ))}
             <input
-              ref={contextInputRef}
+              ref={tagInputRef}
               type="text"
-              value={context}
+              value={tagInput}
               onChange={(e) => {
-                const val = e.target.value;
-                if (val.length <= CONTEXT_MAX) {
-                  setContext(val);
-                  if (!contextOpen) setContextOpen(true);
-                }
+                let val = e.target.value;
+                if (!val.startsWith("#")) val = "#" + val.replace(/^#+/, "");
+                setTagInput(val);
               }}
-              onFocus={() => setContextOpen(true)}
-              placeholder="Context (e.g. work)"
-              required
-              maxLength={CONTEXT_MAX}
-              className="w-full rounded-lg bg-transparent px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
+              onKeyDown={handleTagKeyDown}
+              onFocus={handleTagFocus}
+              onBlur={handleTagBlur}
+              placeholder={tags.length === 0 ? "#tag" : ""}
+              className="min-w-[60px] flex-1 bg-transparent py-0.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
             />
+          </div>
+
+          {/* Type — Custom Dropdown */}
+          <div ref={typeRef} className="relative">
+            <button
+              type="button"
+              onClick={() => setTypeOpen(!typeOpen)}
+              className="flex w-full items-center justify-between rounded-lg border border-border bg-secondary px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+            >
+              <span className="capitalize">{type}</span>
+              <ChevronDown className={`h-3.5 w-3.5 text-muted-foreground transition-transform ${typeOpen ? "rotate-180" : ""}`} />
+            </button>
+            {typeOpen && (
+              <div className="absolute left-0 right-0 top-full z-50 mt-1 animate-slide-down-fade rounded-lg border border-border bg-surface py-1 shadow-lg">
+                {["note", "idea", "snippet", "experience"].map((t) => (
+                  <button
+                    key={t}
+                    type="button"
+                    onClick={() => {
+                      setType(t);
+                      setTypeOpen(false);
+                    }}
+                    className={`block w-full px-4 py-2 text-left text-sm capitalize transition-colors ${
+                      type === t
+                        ? "bg-surface-hover text-foreground"
+                        : "text-muted-foreground hover:bg-surface-hover hover:text-foreground"
+                    }`}
+                  >
+                    {t}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Rating */}
+          <div className="flex items-center gap-2 rounded-lg border border-border bg-secondary px-4 py-3">
+            <span className="text-sm text-muted-foreground">Rating</span>
+            <div className="flex gap-0.5">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <button
+                  key={star}
+                  type="button"
+                  onClick={() => setRating(rating === star ? null : star)}
+                  className="p-1 transition-colors"
+                >
+                  <Star
+                    className={`h-4 w-4 ${
+                      rating !== null && star <= rating
+                        ? "fill-accent text-accent"
+                        : "text-muted-foreground/30"
+                    }`}
+                  />
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Price */}
+          <div className="flex items-center gap-2 rounded-lg border border-border bg-secondary px-4 py-3">
+            <span className="text-sm text-muted-foreground">R$</span>
+            <input
+              type="text"
+              inputMode="numeric"
+              value={priceRaw ? formatPrice(priceRaw) : ""}
+              onChange={(e) => handlePriceChange(e.target.value)}
+              placeholder="0,00"
+              className="w-full bg-transparent text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none"
+            />
+          </div>
+        </div>
+
+        {/* Right: Image */}
+        {imagePreview ? (
+          <div className="overflow-hidden rounded-lg border border-border bg-secondary">
             <button
               type="button"
               onClick={() => {
-                setContextOpen(!contextOpen);
-                if (!contextOpen) contextInputRef.current?.focus();
+                setShowImagePreview(true);
+                document.body.style.overflow = "hidden";
               }}
-              className="pr-3 text-muted-foreground"
+              className="aspect-square w-full overflow-hidden cursor-zoom-in"
             >
-              <ChevronDown className={`h-3.5 w-3.5 transition-transform ${contextOpen ? "rotate-180" : ""}`} />
+              <img
+                src={imagePreview}
+                alt="Preview"
+                className="h-full w-full object-cover"
+              />
             </button>
-          </div>
-          {contextOpen && (filteredContexts.length > 0 || showCreateOption) && (
-            <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-[160px] animate-slide-down-fade overflow-y-auto rounded-lg border border-border bg-surface py-1 shadow-lg">
-              {filteredContexts.map((ctx) => (
-                <button
-                  key={ctx}
-                  type="button"
-                  onClick={() => selectContext(ctx)}
-                  className="block w-full px-4 py-2 text-left text-sm text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground"
-                >
-                  {ctx}
-                </button>
-              ))}
-              {showCreateOption && (
-                <button
-                  type="button"
-                  onClick={() => selectContext(context.trim())}
-                  className="block w-full px-4 py-2 text-left text-sm text-accent transition-colors hover:bg-surface-hover"
-                >
-                  Create &quot;{context.trim()}&quot;
-                </button>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Type — Custom Dropdown */}
-        <div ref={typeRef} className="relative">
-          <button
-            type="button"
-            onClick={() => setTypeOpen(!typeOpen)}
-            className="flex w-full items-center justify-between rounded-lg border border-border bg-secondary px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-          >
-            <span className="capitalize">{type}</span>
-            <ChevronDown className={`h-3.5 w-3.5 text-muted-foreground transition-transform ${typeOpen ? "rotate-180" : ""}`} />
-          </button>
-          {typeOpen && (
-            <div className="absolute left-0 right-0 top-full z-50 mt-1 animate-slide-down-fade rounded-lg border border-border bg-surface py-1 shadow-lg">
-              {["note", "idea", "snippet", "experience"].map((t) => (
-                <button
-                  key={t}
-                  type="button"
-                  onClick={() => {
-                    setType(t);
-                    setTypeOpen(false);
-                  }}
-                  className={`block w-full px-4 py-2 text-left text-sm capitalize transition-colors ${
-                    type === t
-                      ? "bg-surface-hover text-foreground"
-                      : "text-muted-foreground hover:bg-surface-hover hover:text-foreground"
-                  }`}
-                >
-                  {t}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Tags — Chip Input */}
-      <div className="flex flex-wrap items-center gap-2 rounded-lg border border-border bg-secondary px-4 py-2.5 focus-within:ring-2 focus-within:ring-ring">
-        {tags.map((tag) => (
-          <span
-            key={tag}
-            className="inline-flex items-center gap-1 rounded-full bg-surface-hover px-2.5 py-1 text-xs text-foreground"
-          >
-            #{tag}
-            <button
-              type="button"
-              onClick={() => removeTag(tag)}
-              className="ml-0.5 rounded-full p-0.5 text-muted-foreground hover:text-foreground"
-            >
-              <X className="h-3.5 w-3.5" />
-            </button>
-          </span>
-        ))}
-        <input
-          ref={tagInputRef}
-          type="text"
-          value={tagInput}
-          onChange={(e) => {
-            let val = e.target.value;
-            if (!val.startsWith("#")) val = "#" + val.replace(/^#+/, "");
-            setTagInput(val);
-          }}
-          onKeyDown={handleTagKeyDown}
-          onFocus={handleTagFocus}
-          onBlur={handleTagBlur}
-          placeholder={tags.length === 0 ? "#tag" : ""}
-          className="min-w-[80px] flex-1 bg-transparent py-0.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none"
-        />
-      </div>
-
-      {/* Image upload */}
-      {imagePreview ? (
-        <div className="relative">
-          <img
-            src={imagePreview}
-            alt="Preview"
-            className="max-h-48 rounded-lg object-cover"
-          />
-          <button
-            type="button"
-            onClick={removeImage}
-            className="absolute right-2 top-2 rounded-full bg-background/80 p-2"
-          >
-            <X className="h-5 w-5 text-foreground" />
-          </button>
-        </div>
-      ) : (
-        <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-border px-4 py-3 text-sm text-muted-foreground transition-colors hover:border-foreground hover:text-foreground">
-          <ImagePlus className="h-4 w-4" />
-          Attach image
-          <input
-            type="file"
-            accept="image/*"
-            onChange={handleImageChange}
-            className="hidden"
-          />
-        </label>
-      )}
-
-      {/* Rating + Price — inline like other fields */}
-      <div className="grid grid-cols-2 gap-3">
-        {/* Rating */}
-        <div className="flex items-center gap-2 rounded-lg border border-border bg-secondary px-4 py-3">
-          <span className="text-sm text-muted-foreground">Rating</span>
-          <div className="flex gap-0.5">
-            {[1, 2, 3, 4, 5].map((star) => (
+            <div className="flex items-center justify-between px-3 py-2">
+              <span className="max-w-[60%] truncate text-[11px] text-muted-foreground">
+                {imageName || "image"}
+              </span>
               <button
-                key={star}
                 type="button"
-                onClick={() => setRating(rating === star ? null : star)}
-                className="p-1 transition-colors"
+                onClick={removeImage}
+                className="flex items-center gap-1 text-[11px] text-muted-foreground transition-colors hover:text-destructive"
               >
-                <Star
-                  className={`h-4 w-4 ${
-                    rating !== null && star <= rating
-                      ? "fill-accent text-accent"
-                      : "text-muted-foreground/30"
-                  }`}
-                />
+                <X className="h-3 w-3" />
+                Remove
               </button>
-            ))}
+            </div>
           </div>
-        </div>
-
-        {/* Price */}
-        <div className="flex items-center gap-2 rounded-lg border border-border bg-secondary px-4 py-3">
-          <span className="text-sm text-muted-foreground">R$</span>
-          <input
-            type="text"
-            inputMode="numeric"
-            value={priceRaw ? formatPrice(priceRaw) : ""}
-            onChange={(e) => handlePriceChange(e.target.value)}
-            placeholder="0,00"
-            className="w-full bg-transparent text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none"
-          />
-        </div>
+        ) : (
+          <label className="flex aspect-square cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border text-sm text-muted-foreground transition-colors hover:border-foreground hover:text-foreground">
+            <ImagePlus className="h-6 w-6" />
+            <span>Attach image</span>
+            <span className="text-[11px] text-muted-foreground/40">JPG, PNG, WebP, GIF</span>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={handleImageChange}
+              className="hidden"
+            />
+          </label>
+        )}
       </div>
 
       {error && <p className="text-xs text-destructive">{error}</p>}
@@ -536,5 +584,36 @@ export default function NewEntryPage() {
         {loading ? "Saving..." : "Save entry"}
       </button>
     </form>
+
+    {/* Image preview lightbox — portal to body to avoid transform containment */}
+    {showImagePreview && imagePreview && createPortal(
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/90 backdrop-blur-sm animate-fade-in"
+        onClick={() => {
+          setShowImagePreview(false);
+          document.body.style.overflow = "";
+        }}
+      >
+        <div className="relative animate-scale-in" onClick={(e) => e.stopPropagation()}>
+          <button
+            type="button"
+            onClick={() => {
+              setShowImagePreview(false);
+              document.body.style.overflow = "";
+            }}
+            className="absolute -right-2 -top-2 z-10 rounded-full bg-surface border border-border p-2 text-muted-foreground transition-colors hover:text-foreground shadow-lg"
+          >
+            <X className="h-4 w-4" />
+          </button>
+          <img
+            src={imagePreview}
+            alt="Preview"
+            className="max-h-[85vh] max-w-[90vw] rounded-lg object-contain"
+          />
+        </div>
+      </div>,
+      document.body
+    )}
+    </>
   );
 }

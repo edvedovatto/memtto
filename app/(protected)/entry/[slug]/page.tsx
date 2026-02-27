@@ -1,10 +1,11 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { createPortal } from "react-dom";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowLeft, Star, Pencil, Trash2, Heart } from "lucide-react";
+import { ArrowLeft, Star, Pencil, Trash2, Heart, X } from "lucide-react";
 import { getEntryBySlug, deleteEntry, toggleChecklistItem, toggleFavorite } from "@/lib/services/entries";
 import { toast } from "sonner";
 import type { Entry, ChecklistItem } from "@/types";
@@ -26,6 +27,8 @@ export default function EntryDetailPage() {
   const [deleting, setDeleting] = useState(false);
   const [checklistItems, setChecklistItems] = useState<ChecklistItem[]>([]);
   const [isFav, setIsFav] = useState(false);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [closingLightbox, setClosingLightbox] = useState(false);
   const togglingRef = useRef(new Set<number>());
 
   useEffect(() => {
@@ -71,6 +74,23 @@ export default function EntryDetailPage() {
       togglingRef.current.delete(index);
     }
   }
+
+  function handleCloseLightbox() {
+    setClosingLightbox(true);
+    setTimeout(() => {
+      setLightboxOpen(false);
+      setClosingLightbox(false);
+      document.body.style.overflow = "";
+    }, 200);
+  }
+
+  useEffect(() => {
+    function handleEsc(e: KeyboardEvent) {
+      if (e.key === "Escape" && lightboxOpen) handleCloseLightbox();
+    }
+    document.addEventListener("keydown", handleEsc);
+    return () => document.removeEventListener("keydown", handleEsc);
+  }, [lightboxOpen]);
 
   async function handleToggleFavorite() {
     if (!entry) return;
@@ -132,14 +152,14 @@ export default function EntryDetailPage() {
   }
 
   return (
+    <>
     <div className="space-y-4 fade-in-up">
       <div className="space-y-2">
         <Link
           href="/"
-          className="btn-press inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground"
+          className="btn-press inline-flex items-center justify-center rounded-lg border border-border p-2 text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground"
         >
           <ArrowLeft className="h-4 w-4" />
-          Back
         </Link>
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-semibold text-foreground">{entry.title}</h1>
@@ -210,15 +230,23 @@ export default function EntryDetailPage() {
       )}
 
       {entry.image_url && (
-        <div className="overflow-hidden rounded-lg">
+        <button
+          type="button"
+          onClick={() => {
+            setLightboxOpen(true);
+            document.body.style.overflow = "hidden";
+          }}
+          className="relative w-full overflow-hidden rounded-xl cursor-zoom-in"
+        >
           <Image
             src={entry.image_url}
             alt={entry.title}
-            width={600}
-            height={400}
-            className="w-full object-cover"
+            width={800}
+            height={600}
+            className="w-full"
           />
-        </div>
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-background/30 to-transparent" />
+        </button>
       )}
 
       {entry.content_format === "checklist" ? (
@@ -322,5 +350,33 @@ export default function EntryDetailPage() {
         </div>
       )}
     </div>
+
+    {/* Lightbox — portal to body to avoid transform containment from fade-in-up */}
+    {lightboxOpen && entry?.image_url && createPortal(
+      <div
+        className={`fixed inset-0 z-50 flex items-center justify-center p-4 bg-background/90 backdrop-blur-sm ${closingLightbox ? "animate-fade-out" : "animate-fade-in"}`}
+        onClick={handleCloseLightbox}
+      >
+        <div
+          className={`relative ${closingLightbox ? "animate-scale-out" : "animate-scale-in"}`}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button
+            type="button"
+            onClick={handleCloseLightbox}
+            className="absolute -right-2 -top-2 z-10 rounded-full bg-surface border border-border p-2 text-muted-foreground transition-colors hover:text-foreground shadow-lg"
+          >
+            <X className="h-4 w-4" />
+          </button>
+          <img
+            src={entry.image_url}
+            alt={entry.title}
+            className="max-h-[85vh] max-w-[90vw] rounded-lg object-contain"
+          />
+        </div>
+      </div>,
+      document.body
+    )}
+    </>
   );
 }
