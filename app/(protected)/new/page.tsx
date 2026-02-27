@@ -141,6 +141,7 @@ export default function NewEntryPage() {
   function handleChecklistKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
     if (e.key === "Enter") {
       e.preventDefault();
+      e.stopPropagation();
       addChecklistItem();
     }
   }
@@ -320,6 +321,7 @@ export default function NewEntryPage() {
             <input
               ref={checklistInputRef}
               type="text"
+              enterKeyHint="done"
               value={checklistInput}
               onChange={(e) => setChecklistInput(e.target.value)}
               onKeyDown={handleChecklistKeyDown}
