@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/client";
-import type { Entry, CreateEntryInput, UpdateEntryInput, SearchParams } from "@/types";
+import type { Entry, CreateEntryInput, UpdateEntryInput, SearchParams, ChecklistItem } from "@/types";
 
 function slugify(text: string): string {
   const charMap: Record<string, string> = {
@@ -54,6 +54,7 @@ export async function createEntry(input: CreateEntryInput): Promise<Entry> {
     slug,
     title: input.title,
     content_text: input.content_text,
+    content_format: input.content_format || "text",
     context: input.context,
     type: input.type,
     tags: input.tags,
@@ -158,6 +159,7 @@ export async function updateEntry(
 
   if (input.title !== undefined) row.title = input.title;
   if (input.content_text !== undefined) row.content_text = input.content_text;
+  if (input.content_format !== undefined) row.content_format = input.content_format;
   if (input.context !== undefined) row.context = input.context;
   if (input.type !== undefined) row.type = input.type;
   if (input.tags !== undefined) row.tags = input.tags;
@@ -199,6 +201,40 @@ export async function updateEntry(
 
   if (error) throw error;
   return data as Entry;
+}
+
+export async function toggleChecklistItem(
+  id: string,
+  itemIndex: number
+): Promise<ChecklistItem[]> {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) throw new Error("Not authenticated");
+
+  const { data: entry, error: fetchError } = await supabase
+    .from("entries")
+    .select("content_text")
+    .eq("id", id)
+    .eq("user_id", user.id)
+    .single();
+
+  if (fetchError) throw fetchError;
+
+  const items: ChecklistItem[] = JSON.parse(entry.content_text);
+  items[itemIndex] = { ...items[itemIndex], checked: !items[itemIndex].checked };
+
+  const { error: updateError } = await supabase
+    .from("entries")
+    .update({ content_text: JSON.stringify(items) })
+    .eq("id", id)
+    .eq("user_id", user.id);
+
+  if (updateError) throw updateError;
+
+  return items;
 }
 
 export async function getContexts(): Promise<string[]> {

@@ -5,9 +5,9 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowLeft, Star, Pencil, Trash2 } from "lucide-react";
-import { getEntryBySlug, deleteEntry } from "@/lib/services/entries";
+import { getEntryBySlug, deleteEntry, toggleChecklistItem } from "@/lib/services/entries";
 import { toast } from "sonner";
-import type { Entry } from "@/types";
+import type { Entry, ChecklistItem } from "@/types";
 
 export default function EntryDetailPage() {
   const params = useParams();
@@ -16,12 +16,18 @@ export default function EntryDetailPage() {
   const [loading, setLoading] = useState(true);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [checklistItems, setChecklistItems] = useState<ChecklistItem[]>([]);
 
   useEffect(() => {
     async function load() {
       try {
         const data = await getEntryBySlug(params.slug as string);
         setEntry(data);
+        if (data?.content_format === "checklist") {
+          try {
+            setChecklistItems(JSON.parse(data.content_text));
+          } catch { /* ignore parse errors */ }
+        }
       } catch (err) {
         console.error("Failed to load entry:", err);
       } finally {
@@ -30,6 +36,27 @@ export default function EntryDetailPage() {
     }
     load();
   }, [params.slug]);
+
+  async function handleToggleItem(index: number) {
+    if (!entry) return;
+    // Optimistic update
+    setChecklistItems((prev) =>
+      prev.map((item, i) =>
+        i === index ? { ...item, checked: !item.checked } : item
+      )
+    );
+    try {
+      const updated = await toggleChecklistItem(entry.id, index);
+      setChecklistItems(updated);
+    } catch {
+      // Revert on error
+      setChecklistItems((prev) =>
+        prev.map((item, i) =>
+          i === index ? { ...item, checked: !item.checked } : item
+        )
+      );
+    }
+  }
 
   async function handleDelete() {
     if (!entry) return;
@@ -151,9 +178,50 @@ export default function EntryDetailPage() {
         </div>
       )}
 
-      <div className="whitespace-pre-wrap text-sm leading-relaxed text-foreground/90">
-        {entry.content_text}
-      </div>
+      {entry.content_format === "checklist" ? (
+        <div className="space-y-1">
+          {checklistItems.map((item, index) => (
+            <button
+              key={index}
+              type="button"
+              onClick={() => handleToggleItem(index)}
+              className="flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left transition-colors hover:bg-secondary"
+            >
+              <div
+                className={`flex h-5 w-5 flex-shrink-0 items-center justify-center rounded border transition-colors ${
+                  item.checked
+                    ? "border-accent bg-accent text-background"
+                    : "border-muted-foreground/30"
+                }`}
+              >
+                {item.checked && (
+                  <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                  </svg>
+                )}
+              </div>
+              <span
+                className={`text-sm ${
+                  item.checked
+                    ? "text-muted-foreground line-through"
+                    : "text-foreground"
+                }`}
+              >
+                {item.text}
+              </span>
+            </button>
+          ))}
+          {checklistItems.length > 0 && (
+            <p className="mt-2 text-xs text-muted-foreground/50">
+              {checklistItems.filter((i) => i.checked).length}/{checklistItems.length} completed
+            </p>
+          )}
+        </div>
+      ) : (
+        <div className="whitespace-pre-wrap text-sm leading-relaxed text-foreground/90">
+          {entry.content_text}
+        </div>
+      )}
 
       {(entry.rating || entry.price_cents) && (
         <div className="flex items-center gap-4 border-t border-border pt-4">

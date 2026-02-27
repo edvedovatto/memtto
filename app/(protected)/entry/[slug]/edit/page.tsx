@@ -2,12 +2,12 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { ArrowLeft, ImagePlus, X, Star, ChevronDown } from "lucide-react";
+import { ArrowLeft, ImagePlus, X, Star, ChevronDown, Type, ListChecks, Plus } from "lucide-react";
 import Link from "next/link";
 import { getEntryBySlug, updateEntry, getContexts } from "@/lib/services/entries";
 import { uploadImage } from "@/lib/services/storage";
 import { toast } from "sonner";
-import type { Entry } from "@/types";
+import type { Entry, ChecklistItem } from "@/types";
 
 const TITLE_MAX = 120;
 const CONTENT_MAX = 2000;
@@ -42,6 +42,9 @@ export default function EditEntryPage() {
   const [error, setError] = useState("");
   const [rating, setRating] = useState<number | null>(null);
   const [priceRaw, setPriceRaw] = useState("");
+  const [contentFormat, setContentFormat] = useState<"text" | "checklist">("text");
+  const [checklistItems, setChecklistItems] = useState<string[]>([]);
+  const [checklistInput, setChecklistInput] = useState("");
 
   const [contexts, setContexts] = useState<string[]>([]);
   const [contextOpen, setContextOpen] = useState(false);
@@ -65,7 +68,6 @@ export default function EditEntryPage() {
 
         setEntry(data);
         setTitle(data.title);
-        setContentText(data.content_text);
         setContext(data.context);
         setType(data.type);
         setTags(data.tags);
@@ -73,6 +75,19 @@ export default function EditEntryPage() {
         setRating(data.rating);
         setPriceRaw(data.price_cents != null ? String(data.price_cents) : "");
         setContexts(ctxList);
+
+        const format = data.content_format || "text";
+        setContentFormat(format);
+        if (format === "checklist") {
+          try {
+            const items: ChecklistItem[] = JSON.parse(data.content_text);
+            setChecklistItems(items.map((i) => i.text));
+          } catch {
+            setContentText(data.content_text);
+          }
+        } else {
+          setContentText(data.content_text);
+        }
       } catch (err) {
         console.error("Failed to load entry:", err);
       } finally {
@@ -149,6 +164,25 @@ export default function EditEntryPage() {
     }
   }
 
+  function addChecklistItem() {
+    const value = checklistInput.trim();
+    if (value) {
+      setChecklistItems([...checklistItems, value]);
+      setChecklistInput("");
+    }
+  }
+
+  function removeChecklistItem(index: number) {
+    setChecklistItems(checklistItems.filter((_, i) => i !== index));
+  }
+
+  function handleChecklistKeyDown(e: React.KeyboardEvent<HTMLInputElement>) {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      addChecklistItem();
+    }
+  }
+
   function handlePriceChange(value: string) {
     const digits = value.replace(/\D/g, "").slice(0, 7);
     setPriceRaw(digits);
@@ -159,9 +193,11 @@ export default function EditEntryPage() {
     return parseInt(priceRaw, 10) || null;
   }
 
+  const hasContent = contentFormat === "text" ? contentText.trim() : checklistItems.length > 0;
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!entry || !title.trim() || !context.trim() || !contentText.trim()) return;
+    if (!entry || !title.trim() || !context.trim() || !hasContent) return;
 
     setLoading(true);
     setError("");
@@ -178,9 +214,15 @@ export default function EditEntryPage() {
         imageUrl = null;
       }
 
+      const finalContent =
+        contentFormat === "checklist"
+          ? JSON.stringify(checklistItems.map((text) => ({ text, checked: false })))
+          : contentText.trim();
+
       const updated = await updateEntry(entry.id, {
         title: title.trim(),
-        content_text: contentText.trim(),
+        content_text: finalContent,
+        content_format: contentFormat,
         context: context.trim(),
         type,
         tags,
@@ -264,25 +306,95 @@ export default function EditEntryPage() {
         </div>
       </div>
 
-      {/* Content */}
-      <div>
-        <textarea
-          value={contentText}
-          onChange={(e) => {
-            if (e.target.value.length <= CONTENT_MAX) setContentText(e.target.value);
-          }}
-          placeholder="Content..."
-          required
-          rows={6}
-          maxLength={CONTENT_MAX}
-          className={`${inputClass} resize-none`}
-        />
-        <div className="mt-1 flex justify-end">
-          <span className="text-[11px] text-muted-foreground">
-            {contentText.length}/{CONTENT_MAX}
-          </span>
-        </div>
+      {/* Content format toggle */}
+      <div className="flex gap-1 rounded-lg border border-border bg-secondary p-1">
+        <button
+          type="button"
+          onClick={() => setContentFormat("text")}
+          className={`flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+            contentFormat === "text"
+              ? "bg-surface text-foreground shadow-sm"
+              : "text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          <Type className="h-3.5 w-3.5" />
+          Text
+        </button>
+        <button
+          type="button"
+          onClick={() => setContentFormat("checklist")}
+          className={`flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+            contentFormat === "checklist"
+              ? "bg-surface text-foreground shadow-sm"
+              : "text-muted-foreground hover:text-foreground"
+          }`}
+        >
+          <ListChecks className="h-3.5 w-3.5" />
+          Checklist
+        </button>
       </div>
+
+      {/* Content */}
+      {contentFormat === "text" ? (
+        <div>
+          <textarea
+            value={contentText}
+            onChange={(e) => {
+              if (e.target.value.length <= CONTENT_MAX) setContentText(e.target.value);
+            }}
+            placeholder="Content..."
+            rows={6}
+            maxLength={CONTENT_MAX}
+            className={`${inputClass} resize-none`}
+          />
+          <div className="mt-1 flex justify-end">
+            <span className="text-[11px] text-muted-foreground">
+              {contentText.length}/{CONTENT_MAX}
+            </span>
+          </div>
+        </div>
+      ) : (
+        <div className="space-y-2">
+          {checklistItems.length > 0 && (
+            <div className="space-y-1">
+              {checklistItems.map((item, index) => (
+                <div
+                  key={index}
+                  className="flex items-center gap-2 rounded-lg border border-border bg-secondary px-3 py-2"
+                >
+                  <div className="h-4 w-4 rounded border border-muted-foreground/30" />
+                  <span className="flex-1 text-sm text-foreground">{item}</span>
+                  <button
+                    type="button"
+                    onClick={() => removeChecklistItem(index)}
+                    className="text-muted-foreground hover:text-foreground"
+                  >
+                    <X className="h-3.5 w-3.5" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={checklistInput}
+              onChange={(e) => setChecklistInput(e.target.value)}
+              onKeyDown={handleChecklistKeyDown}
+              placeholder="Add item..."
+              className={inputClass}
+            />
+            <button
+              type="button"
+              onClick={addChecklistItem}
+              disabled={!checklistInput.trim()}
+              className="rounded-lg border border-border bg-secondary px-3 text-muted-foreground transition-colors hover:text-foreground disabled:opacity-30"
+            >
+              <Plus className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Context + Type */}
       <div className="grid grid-cols-2 gap-3">
@@ -457,7 +569,7 @@ export default function EditEntryPage() {
 
       <button
         type="submit"
-        disabled={loading || !title.trim() || !context.trim() || !contentText.trim()}
+        disabled={loading || !title.trim() || !context.trim() || !hasContent}
         className="w-full rounded-lg bg-foreground py-3 text-sm font-medium text-background transition-opacity hover:opacity-90 disabled:opacity-50"
       >
         {loading ? "Saving..." : "Save changes"}

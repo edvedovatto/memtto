@@ -4,7 +4,7 @@ import { memo, useState } from "react";
 import Link from "next/link";
 // eslint-disable-next-line @next/next/no-img-element
 import { Star } from "lucide-react";
-import type { Entry } from "@/types";
+import type { Entry, ChecklistItem } from "@/types";
 
 function formatPrice(cents: number): string {
   const reais = (cents / 100).toFixed(2);
@@ -78,11 +78,38 @@ export const EntryCard = memo(function EntryCard({ entry }: { entry: Entry }) {
               {entry.title}
             </h3>
 
-            {entry.content_text && (
+            {entry.content_format === "checklist" ? (
+              (() => {
+                try {
+                  const items: ChecklistItem[] = JSON.parse(entry.content_text);
+                  const checked = items.filter((i) => i.checked).length;
+                  return (
+                    <div className="mt-1 space-y-0.5">
+                      {items.slice(0, 3).map((item, i) => (
+                        <div key={i} className="flex items-center gap-1.5 text-[13px] text-muted-foreground/70">
+                          <span>{item.checked ? "\u2611" : "\u2610"}</span>
+                          <span className={item.checked ? "line-through" : ""}>{item.text}</span>
+                        </div>
+                      ))}
+                      {items.length > 3 && (
+                        <p className="text-[11px] text-muted-foreground/50">
+                          +{items.length - 3} more
+                        </p>
+                      )}
+                      <p className="text-[11px] text-muted-foreground/50">
+                        {checked}/{items.length} completed
+                      </p>
+                    </div>
+                  );
+                } catch {
+                  return null;
+                }
+              })()
+            ) : entry.content_text ? (
               <p className="mt-1 line-clamp-2 text-[13px] leading-relaxed text-muted-foreground/70">
                 {entry.content_text}
               </p>
-            )}
+            ) : null}
 
             {/* Rating + Price */}
             {hasMetadata && (

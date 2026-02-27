@@ -1,3 +1,8 @@
+export interface ChecklistItem {
+  text: string;
+  checked: boolean;
+}
+
 export interface Entry {
   id: string;
   user_id: string;
@@ -6,6 +11,7 @@ export interface Entry {
   type: string;
   title: string;
   content_text: string;
+  content_format: "text" | "checklist";
   tags: string[];
   image_url: string | null;
   rating: number | null;
@@ -21,6 +27,7 @@ export interface CreateEntryInput {
   type: string;
   title: string;
   content_text: string;
+  content_format?: "text" | "checklist";
   tags: string[];
   image_url?: string | null;
   rating?: number | null;
