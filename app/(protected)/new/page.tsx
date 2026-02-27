@@ -176,12 +176,13 @@ export default function NewEntryPage() {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {/* Header with back */}
-      <div className="flex items-center gap-3">
+      <div className="space-y-2">
         <Link
           href="/"
-          className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:text-foreground"
+          className="inline-flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
         >
-          <ArrowLeft className="h-4 w-4" />
+          <ArrowLeft className="h-3.5 w-3.5" />
+          Back
         </Link>
         <h1 className="text-lg font-semibold text-foreground">New entry</h1>
       </div>

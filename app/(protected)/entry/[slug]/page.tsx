@@ -5,7 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowLeft, Star } from "lucide-react";
-import { getEntryById } from "@/lib/services/entries";
+import { getEntryBySlug } from "@/lib/services/entries";
 import type { Entry } from "@/types";
 
 export default function EntryDetailPage() {
@@ -17,7 +17,7 @@ export default function EntryDetailPage() {
   useEffect(() => {
     async function load() {
       try {
-        const data = await getEntryById(params.id as string);
+        const data = await getEntryBySlug(params.slug as string);
         setEntry(data);
       } catch (err) {
         console.error("Failed to load entry:", err);
@@ -26,7 +26,7 @@ export default function EntryDetailPage() {
       }
     }
     load();
-  }, [params.id]);
+  }, [params.slug]);
 
   if (loading) {
     return (
@@ -52,16 +52,16 @@ export default function EntryDetailPage() {
 
   return (
     <div className="space-y-4">
-      <Link
-        href="/"
-        className="inline-flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
-      >
-        <ArrowLeft className="h-3.5 w-3.5" />
-        Back
-      </Link>
-
-      <div>
-        <div className="mb-2 flex items-center gap-2">
+      <div className="space-y-2">
+        <Link
+          href="/"
+          className="inline-flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
+        >
+          <ArrowLeft className="h-3.5 w-3.5" />
+          Back
+        </Link>
+        <h1 className="text-xl font-semibold text-foreground">{entry.title}</h1>
+        <div className="flex items-center gap-2">
           <span className="rounded-md bg-secondary px-2 py-0.5 text-xs text-muted-foreground">
             {entry.context}
           </span>
@@ -72,8 +72,6 @@ export default function EntryDetailPage() {
             {new Date(entry.created_at).toLocaleDateString()}
           </span>
         </div>
-
-        <h1 className="text-xl font-semibold text-foreground">{entry.title}</h1>
       </div>
 
       {entry.image_url && (
