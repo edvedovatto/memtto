@@ -29,6 +29,14 @@ export function SearchBar({
 }: SearchBarProps) {
   const [contextOpen, setContextOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Only autofocus on desktop (>= 768px) to avoid keyboard covering content on mobile
+  useEffect(() => {
+    if (window.matchMedia("(min-width: 768px)").matches) {
+      inputRef.current?.focus();
+    }
+  }, []);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -57,7 +65,7 @@ export function SearchBar({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
-        autoFocus
+        ref={inputRef}
         className={cn(
           "w-full rounded-2xl border border-border bg-surface text-foreground placeholder:text-muted-foreground/60 outline-none ring-0 focus:outline-none focus:ring-0 focus:border-border",
           "transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]",
