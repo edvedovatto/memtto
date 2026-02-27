@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -17,6 +17,7 @@ export default function EntryDetailPage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [checklistItems, setChecklistItems] = useState<ChecklistItem[]>([]);
+  const togglingRef = useRef(new Set<number>());
 
   useEffect(() => {
     async function load() {
@@ -38,7 +39,8 @@ export default function EntryDetailPage() {
   }, [params.slug]);
 
   async function handleToggleItem(index: number) {
-    if (!entry) return;
+    if (!entry || togglingRef.current.has(index)) return;
+    togglingRef.current.add(index);
     // Optimistic update
     setChecklistItems((prev) =>
       prev.map((item, i) =>
@@ -55,6 +57,8 @@ export default function EntryDetailPage() {
           i === index ? { ...item, checked: !item.checked } : item
         )
       );
+    } finally {
+      togglingRef.current.delete(index);
     }
   }
 
