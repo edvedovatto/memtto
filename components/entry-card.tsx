@@ -2,7 +2,7 @@
 
 import { memo, useState } from "react";
 import Link from "next/link";
-import Image from "next/image";
+// eslint-disable-next-line @next/next/no-img-element
 import { Star } from "lucide-react";
 import type { Entry } from "@/types";
 
@@ -35,38 +35,34 @@ export const EntryCard = memo(function EntryCard({ entry }: { entry: Entry }) {
   const hasMetadata = hasRating || hasPrice;
 
   return (
-    <Link href={`/entry/${entry.id}`}>
+    <Link href={`/entry/${entry.slug}`}>
       <div className="group overflow-hidden rounded-xl border border-border bg-surface transition-colors duration-200 ease-in-out hover:bg-surface-hover">
         {/* Banner image for wide/ultrawide images */}
         {hasImage && imageLayout === "top" && (
           <div className="overflow-hidden">
-            <Image
+            <img
               src={entry.image_url!}
               alt={entry.title}
-              width={600}
-              height={200}
               onLoad={handleImageLoad}
               className="h-[160px] w-full object-cover"
             />
           </div>
         )}
 
-        <div className="flex gap-4 px-5 py-4">
+        <div className={`flex gap-4 ${hasImage && imageLayout === "side" ? "p-3" : "px-5 py-4"}`}>
           {/* Side thumbnail for normal/portrait images */}
           {hasImage && imageLayout === "side" && (
-            <div className="flex-shrink-0 overflow-hidden rounded-md">
-              <Image
+            <div className="flex-shrink-0 self-stretch overflow-hidden rounded-lg">
+              <img
                 src={entry.image_url!}
                 alt={entry.title}
-                width={80}
-                height={80}
                 onLoad={handleImageLoad}
-                className="h-[80px] w-[80px] object-cover"
+                className="h-full w-[100px] object-cover"
               />
             </div>
           )}
 
-          <div className="min-w-0 flex-1">
+          <div className={`min-w-0 flex-1 ${hasImage && imageLayout === "side" ? "py-0.5 pr-1" : ""}`}>
             {/* Header: context badge, type, date */}
             <div className="mb-1.5 flex items-center gap-2 text-[11px] text-muted-foreground/60">
               <span className="rounded border border-border px-1.5 py-0.5 font-medium text-muted-foreground">

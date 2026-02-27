@@ -1,6 +1,27 @@
 import { createClient } from "@/lib/supabase/client";
 import type { Entry, CreateEntryInput, SearchParams } from "@/types";
 
+function slugify(text: string): string {
+  const charMap: Record<string, string> = {
+    á: "a", à: "a", â: "a", ã: "a", ä: "a",
+    é: "e", è: "e", ê: "e", ë: "e",
+    í: "i", ì: "i", î: "i", ï: "i",
+    ó: "o", ò: "o", ô: "o", õ: "o", ö: "o",
+    ú: "u", ù: "u", û: "u", ü: "u",
+    ç: "c", ñ: "n",
+  };
+  return text
+    .toLowerCase()
+    .split("")
+    .map((c) => charMap[c] || c)
+    .join("")
+    .replace(/[^a-z0-9\s-]/g, "")
+    .trim()
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .slice(0, 80);
+}
+
 export async function createEntry(input: CreateEntryInput): Promise<Entry> {
   const supabase = createClient();
   const {
@@ -9,8 +30,28 @@ export async function createEntry(input: CreateEntryInput): Promise<Entry> {
 
   if (!user) throw new Error("Not authenticated");
 
+  const baseSlug = slugify(input.title);
+
+  // Check for existing slugs to avoid duplicates
+  const { data: existing } = await supabase
+    .from("entries")
+    .select("slug")
+    .eq("user_id", user.id)
+    .like("slug", `${baseSlug}%`);
+
+  let slug = baseSlug;
+  if (existing && existing.length > 0) {
+    const taken = new Set(existing.map((e) => e.slug));
+    if (taken.has(slug)) {
+      let i = 2;
+      while (taken.has(`${baseSlug}-${i}`)) i++;
+      slug = `${baseSlug}-${i}`;
+    }
+  }
+
   const row: Record<string, unknown> = {
     user_id: user.id,
+    slug,
     title: input.title,
     content_text: input.content_text,
     context: input.context,
@@ -62,7 +103,7 @@ export async function searchEntries(params: SearchParams): Promise<Entry[]> {
   return (data as Entry[]) ?? [];
 }
 
-export async function getEntryById(id: string): Promise<Entry | null> {
+export async function getEntryBySlug(slug: string): Promise<Entry | null> {
   const supabase = createClient();
   const {
     data: { user },
@@ -73,7 +114,7 @@ export async function getEntryById(id: string): Promise<Entry | null> {
   const { data, error } = await supabase
     .from("entries")
     .select("*")
-    .eq("id", id)
+    .eq("slug", slug)
     .eq("user_id", user.id)
     .single();
 

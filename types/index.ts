@@ -1,6 +1,7 @@
 export interface Entry {
   id: string;
   user_id: string;
+  slug: string;
   context: string;
   type: string;
   title: string;
