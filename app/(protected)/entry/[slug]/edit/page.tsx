@@ -51,6 +51,7 @@ export default function EditEntryPage() {
   const contextRef = useRef<HTMLDivElement>(null);
   const contextInputRef = useRef<HTMLInputElement>(null);
   const tagInputRef = useRef<HTMLInputElement>(null);
+  const checklistInputRef = useRef<HTMLInputElement>(null);
   const typeRef = useRef<HTMLDivElement>(null);
   const [typeOpen, setTypeOpen] = useState(false);
 
@@ -175,6 +176,7 @@ export default function EditEntryPage() {
       setChecklistItems([...checklistItems, value]);
       setChecklistInput("");
     }
+    setTimeout(() => checklistInputRef.current?.focus(), 0);
   }
 
   function removeChecklistItem(index: number) {
@@ -383,6 +385,7 @@ export default function EditEntryPage() {
           <div className={`flex items-center gap-3 px-4 py-2.5 ${checklistItems.length > 0 ? "border-t border-border/50" : ""}`}>
             <Plus className="h-[18px] w-[18px] flex-shrink-0 text-muted-foreground/30" />
             <input
+              ref={checklistInputRef}
               type="text"
               value={checklistInput}
               onChange={(e) => setChecklistInput(e.target.value)}
