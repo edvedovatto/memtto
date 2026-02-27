@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/client";
-import type { Entry, CreateEntryInput, SearchParams } from "@/types";
+import type { Entry, CreateEntryInput, UpdateEntryInput, SearchParams } from "@/types";
 
 function slugify(text: string): string {
   const charMap: Record<string, string> = {
@@ -123,6 +123,81 @@ export async function getEntryBySlug(slug: string): Promise<Entry | null> {
     throw error;
   }
 
+  return data as Entry;
+}
+
+export async function deleteEntry(id: string): Promise<void> {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) throw new Error("Not authenticated");
+
+  const { error } = await supabase
+    .from("entries")
+    .delete()
+    .eq("id", id)
+    .eq("user_id", user.id);
+
+  if (error) throw error;
+}
+
+export async function updateEntry(
+  id: string,
+  input: UpdateEntryInput
+): Promise<Entry> {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) throw new Error("Not authenticated");
+
+  const row: Record<string, unknown> = {};
+
+  if (input.title !== undefined) row.title = input.title;
+  if (input.content_text !== undefined) row.content_text = input.content_text;
+  if (input.context !== undefined) row.context = input.context;
+  if (input.type !== undefined) row.type = input.type;
+  if (input.tags !== undefined) row.tags = input.tags;
+  if (input.image_url !== undefined) row.image_url = input.image_url;
+  if (input.rating !== undefined) row.rating = input.rating;
+  if (input.price_cents !== undefined) row.price_cents = input.price_cents;
+
+  // Recalculate slug if title changed
+  if (input.title !== undefined) {
+    const baseSlug = slugify(input.title);
+
+    const { data: existing } = await supabase
+      .from("entries")
+      .select("slug, id")
+      .eq("user_id", user.id)
+      .like("slug", `${baseSlug}%`);
+
+    let slug = baseSlug;
+    if (existing && existing.length > 0) {
+      const taken = new Set(
+        existing.filter((e) => e.id !== id).map((e) => e.slug)
+      );
+      if (taken.has(slug)) {
+        let i = 2;
+        while (taken.has(`${baseSlug}-${i}`)) i++;
+        slug = `${baseSlug}-${i}`;
+      }
+    }
+    row.slug = slug;
+  }
+
+  const { data, error } = await supabase
+    .from("entries")
+    .update(row)
+    .eq("id", id)
+    .eq("user_id", user.id)
+    .select()
+    .single();
+
+  if (error) throw error;
   return data as Entry;
 }
 

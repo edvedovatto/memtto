@@ -4,8 +4,9 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowLeft, Star } from "lucide-react";
-import { getEntryBySlug } from "@/lib/services/entries";
+import { ArrowLeft, Star, Pencil, Trash2 } from "lucide-react";
+import { getEntryBySlug, deleteEntry } from "@/lib/services/entries";
+import { toast } from "sonner";
 import type { Entry } from "@/types";
 
 export default function EntryDetailPage() {
@@ -13,6 +14,8 @@ export default function EntryDetailPage() {
   const router = useRouter();
   const [entry, setEntry] = useState<Entry | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     async function load() {
@@ -27,6 +30,21 @@ export default function EntryDetailPage() {
     }
     load();
   }, [params.slug]);
+
+  async function handleDelete() {
+    if (!entry) return;
+    setDeleting(true);
+    try {
+      await deleteEntry(entry.id);
+      toast.success("Entry deleted");
+      router.push("/");
+      router.refresh();
+    } catch (err) {
+      toast.error("Failed to delete entry");
+      setDeleting(false);
+      setShowDeleteConfirm(false);
+    }
+  }
 
   if (loading) {
     return (
@@ -60,7 +78,24 @@ export default function EntryDetailPage() {
           <ArrowLeft className="h-3.5 w-3.5" />
           Back
         </Link>
-        <h1 className="text-xl font-semibold text-foreground">{entry.title}</h1>
+        <div className="flex items-center justify-between">
+          <h1 className="text-xl font-semibold text-foreground">{entry.title}</h1>
+          <div className="flex items-center gap-1">
+            <Link
+              href={`/entry/${entry.slug}/edit`}
+              className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+            >
+              <Pencil className="h-4 w-4" />
+            </Link>
+            <button
+              type="button"
+              onClick={() => setShowDeleteConfirm(true)}
+              className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+            >
+              <Trash2 className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
         <div className="flex items-center gap-2">
           <span className="rounded-md bg-secondary px-2 py-0.5 text-xs text-muted-foreground">
             {entry.context}
@@ -73,6 +108,36 @@ export default function EntryDetailPage() {
           </span>
         </div>
       </div>
+
+      {/* Delete confirmation modal */}
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
+          <div className="mx-4 w-full max-w-sm rounded-lg border border-border bg-surface p-6 shadow-lg">
+            <h2 className="text-sm font-semibold text-foreground">Delete entry?</h2>
+            <p className="mt-2 text-xs text-muted-foreground">
+              This action cannot be undone. The entry &quot;{entry.title}&quot; will be permanently deleted.
+            </p>
+            <div className="mt-4 flex justify-end gap-2">
+              <button
+                type="button"
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={deleting}
+                className="rounded-md px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleDelete}
+                disabled={deleting}
+                className="rounded-md bg-destructive px-3 py-1.5 text-xs font-medium text-destructive-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
+              >
+                {deleting ? "Deleting..." : "Delete"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {entry.image_url && (
         <div className="overflow-hidden rounded-lg">

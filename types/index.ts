@@ -27,6 +27,8 @@ export interface CreateEntryInput {
   price_cents?: number | null;
 }
 
+export type UpdateEntryInput = Partial<CreateEntryInput>;
+
 export interface SearchParams {
   query?: string;
   context?: string;
