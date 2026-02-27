@@ -179,42 +179,54 @@ export default function EntryDetailPage() {
       )}
 
       {entry.content_format === "checklist" ? (
-        <div className="space-y-1">
-          {checklistItems.map((item, index) => (
-            <button
-              key={index}
-              type="button"
-              onClick={() => handleToggleItem(index)}
-              className="flex w-full items-center gap-3 rounded-lg px-2 py-2 text-left transition-colors hover:bg-secondary"
-            >
-              <div
-                className={`flex h-5 w-5 flex-shrink-0 items-center justify-center rounded border transition-colors ${
-                  item.checked
-                    ? "border-accent bg-accent text-background"
-                    : "border-muted-foreground/30"
-                }`}
+        <div className="rounded-lg border border-border bg-surface">
+          <div className="divide-y divide-border/50">
+            {checklistItems.map((item, index) => (
+              <button
+                key={index}
+                type="button"
+                onClick={() => handleToggleItem(index)}
+                className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-surface-hover"
               >
-                {item.checked && (
-                  <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                  </svg>
-                )}
-              </div>
-              <span
-                className={`text-sm ${
-                  item.checked
-                    ? "text-muted-foreground line-through"
-                    : "text-foreground"
-                }`}
-              >
-                {item.text}
-              </span>
-            </button>
-          ))}
+                <div
+                  className={`flex h-[18px] w-[18px] flex-shrink-0 items-center justify-center rounded-[4px] border transition-all ${
+                    item.checked
+                      ? "border-accent bg-accent text-background"
+                      : "border-muted-foreground/25"
+                  }`}
+                >
+                  {item.checked && (
+                    <svg className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
+                  )}
+                </div>
+                <span
+                  className={`text-sm transition-all ${
+                    item.checked
+                      ? "text-muted-foreground/50 line-through"
+                      : "text-foreground"
+                  }`}
+                >
+                  {item.text}
+                </span>
+              </button>
+            ))}
+          </div>
           {checklistItems.length > 0 && (
-            <p className="mt-2 text-xs text-muted-foreground/50">
-              {checklistItems.filter((i) => i.checked).length}/{checklistItems.length} completed
-            </p>
+            <div className="border-t border-border/50 px-4 py-2.5">
+              <div className="flex items-center gap-2">
+                <div className="h-1 flex-1 rounded-full bg-secondary">
+                  <div
+                    className="h-1 rounded-full bg-accent transition-all"
+                    style={{ width: `${(checklistItems.filter((i) => i.checked).length / checklistItems.length) * 100}%` }}
+                  />
+                </div>
+                <span className="text-[11px] text-muted-foreground/50">
+                  {checklistItems.filter((i) => i.checked).length}/{checklistItems.length}
+                </span>
+              </div>
+            </div>
           )}
         </div>
       ) : (

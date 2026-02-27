@@ -84,21 +84,41 @@ export const EntryCard = memo(function EntryCard({ entry }: { entry: Entry }) {
                   const items: ChecklistItem[] = JSON.parse(entry.content_text);
                   const checked = items.filter((i) => i.checked).length;
                   return (
-                    <div className="mt-1 space-y-0.5">
+                    <div className="mt-1.5 space-y-1">
                       {items.slice(0, 3).map((item, i) => (
-                        <div key={i} className="flex items-center gap-1.5 text-[13px] text-muted-foreground/70">
-                          <span>{item.checked ? "\u2611" : "\u2610"}</span>
-                          <span className={item.checked ? "line-through" : ""}>{item.text}</span>
+                        <div key={i} className="flex items-center gap-2 text-[13px]">
+                          <div
+                            className={`flex h-3.5 w-3.5 flex-shrink-0 items-center justify-center rounded-[3px] border ${
+                              item.checked
+                                ? "border-accent/50 bg-accent/20"
+                                : "border-muted-foreground/20"
+                            }`}
+                          >
+                            {item.checked && (
+                              <svg className="h-2.5 w-2.5 text-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                              </svg>
+                            )}
+                          </div>
+                          <span className={item.checked ? "text-muted-foreground/40 line-through" : "text-muted-foreground/70"}>{item.text}</span>
                         </div>
                       ))}
                       {items.length > 3 && (
-                        <p className="text-[11px] text-muted-foreground/50">
+                        <p className="pl-5.5 text-[11px] text-muted-foreground/40">
                           +{items.length - 3} more
                         </p>
                       )}
-                      <p className="text-[11px] text-muted-foreground/50">
-                        {checked}/{items.length} completed
-                      </p>
+                      <div className="flex items-center gap-2 pt-0.5">
+                        <div className="h-1 w-16 rounded-full bg-border/50">
+                          <div
+                            className="h-1 rounded-full bg-accent/60 transition-all"
+                            style={{ width: `${(checked / items.length) * 100}%` }}
+                          />
+                        </div>
+                        <span className="text-[11px] text-muted-foreground/40">
+                          {checked}/{items.length}
+                        </span>
+                      </div>
                     </div>
                   );
                 } catch {

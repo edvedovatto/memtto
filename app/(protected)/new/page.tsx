@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, ImagePlus, X, Star, ChevronDown, Type, ListChecks, Plus, GripVertical } from "lucide-react";
+import { ArrowLeft, ImagePlus, X, Star, ChevronDown, AlignLeft, ListChecks, Plus } from "lucide-react";
 import Link from "next/link";
 import { createEntry, getContexts } from "@/lib/services/entries";
 import { uploadImage } from "@/lib/services/storage";
@@ -46,6 +46,8 @@ export default function NewEntryPage() {
   const contextRef = useRef<HTMLDivElement>(null);
   const contextInputRef = useRef<HTMLInputElement>(null);
   const tagInputRef = useRef<HTMLInputElement>(null);
+  const typeRef = useRef<HTMLDivElement>(null);
+  const [typeOpen, setTypeOpen] = useState(false);
 
   useEffect(() => {
     getContexts().then(setContexts).catch(console.error);
@@ -55,6 +57,9 @@ export default function NewEntryPage() {
     function handleClickOutside(e: MouseEvent) {
       if (contextRef.current && !contextRef.current.contains(e.target as Node)) {
         setContextOpen(false);
+      }
+      if (typeRef.current && !typeRef.current.contains(e.target as Node)) {
+        setTypeOpen(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -238,26 +243,26 @@ export default function NewEntryPage() {
       </div>
 
       {/* Content format toggle */}
-      <div className="flex gap-1 rounded-lg border border-border bg-secondary p-1">
+      <div className="flex rounded-lg bg-secondary p-0.5">
         <button
           type="button"
           onClick={() => setContentFormat("text")}
-          className={`flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+          className={`flex flex-1 items-center justify-center gap-2 rounded-md py-2 text-xs font-medium transition-all ${
             contentFormat === "text"
               ? "bg-surface text-foreground shadow-sm"
-              : "text-muted-foreground hover:text-foreground"
+              : "text-muted-foreground/60 hover:text-muted-foreground"
           }`}
         >
-          <Type className="h-3.5 w-3.5" />
+          <AlignLeft className="h-3.5 w-3.5" />
           Text
         </button>
         <button
           type="button"
           onClick={() => setContentFormat("checklist")}
-          className={`flex flex-1 items-center justify-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
+          className={`flex flex-1 items-center justify-center gap-2 rounded-md py-2 text-xs font-medium transition-all ${
             contentFormat === "checklist"
               ? "bg-surface text-foreground shadow-sm"
-              : "text-muted-foreground hover:text-foreground"
+              : "text-muted-foreground/60 hover:text-muted-foreground"
           }`}
         >
           <ListChecks className="h-3.5 w-3.5" />
@@ -285,21 +290,21 @@ export default function NewEntryPage() {
           </div>
         </div>
       ) : (
-        <div className="space-y-2">
+        <div className="rounded-lg border border-border bg-secondary">
           {/* Checklist items */}
           {checklistItems.length > 0 && (
-            <div className="space-y-1">
+            <div className="divide-y divide-border/50">
               {checklistItems.map((item, index) => (
                 <div
                   key={index}
-                  className="flex items-center gap-2 rounded-lg border border-border bg-secondary px-3 py-2"
+                  className="group/item flex items-center gap-3 px-4 py-2.5"
                 >
-                  <div className="h-4 w-4 rounded border border-muted-foreground/30" />
+                  <div className="flex h-[18px] w-[18px] flex-shrink-0 items-center justify-center rounded-[4px] border border-muted-foreground/25" />
                   <span className="flex-1 text-sm text-foreground">{item}</span>
                   <button
                     type="button"
                     onClick={() => removeChecklistItem(index)}
-                    className="text-muted-foreground hover:text-foreground"
+                    className="text-muted-foreground/0 transition-colors group-hover/item:text-muted-foreground hover:!text-foreground"
                   >
                     <X className="h-3.5 w-3.5" />
                   </button>
@@ -308,23 +313,16 @@ export default function NewEntryPage() {
             </div>
           )}
           {/* Add item input */}
-          <div className="flex gap-2">
+          <div className={`flex items-center gap-3 px-4 py-2.5 ${checklistItems.length > 0 ? "border-t border-border/50" : ""}`}>
+            <Plus className="h-[18px] w-[18px] flex-shrink-0 text-muted-foreground/30" />
             <input
               type="text"
               value={checklistInput}
               onChange={(e) => setChecklistInput(e.target.value)}
               onKeyDown={handleChecklistKeyDown}
               placeholder="Add item..."
-              className={inputClass}
+              className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none"
             />
-            <button
-              type="button"
-              onClick={addChecklistItem}
-              disabled={!checklistInput.trim()}
-              className="rounded-lg border border-border bg-secondary px-3 text-muted-foreground transition-colors hover:text-foreground disabled:opacity-30"
-            >
-              <Plus className="h-4 w-4" />
-            </button>
           </div>
         </div>
       )}
@@ -359,7 +357,7 @@ export default function NewEntryPage() {
               }}
               className="pr-3 text-muted-foreground"
             >
-              <ChevronDown className="h-3.5 w-3.5" />
+              <ChevronDown className={`h-3.5 w-3.5 transition-transform ${contextOpen ? "rotate-180" : ""}`} />
             </button>
           </div>
           {contextOpen && (filteredContexts.length > 0 || showCreateOption) && (
@@ -387,17 +385,38 @@ export default function NewEntryPage() {
           )}
         </div>
 
-        {/* Type */}
-        <select
-          value={type}
-          onChange={(e) => setType(e.target.value)}
-          className="rounded-lg border border-border bg-secondary px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-        >
-          <option value="note">Note</option>
-          <option value="idea">Idea</option>
-          <option value="snippet">Snippet</option>
-          <option value="experience">Experience</option>
-        </select>
+        {/* Type — Custom Dropdown */}
+        <div ref={typeRef} className="relative">
+          <button
+            type="button"
+            onClick={() => setTypeOpen(!typeOpen)}
+            className="flex w-full items-center justify-between rounded-lg border border-border bg-secondary px-4 py-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+          >
+            <span className="capitalize">{type}</span>
+            <ChevronDown className={`h-3.5 w-3.5 text-muted-foreground transition-transform ${typeOpen ? "rotate-180" : ""}`} />
+          </button>
+          {typeOpen && (
+            <div className="absolute left-0 right-0 top-full z-50 mt-1 rounded-lg border border-border bg-surface py-1 shadow-lg">
+              {["note", "idea", "snippet", "experience"].map((t) => (
+                <button
+                  key={t}
+                  type="button"
+                  onClick={() => {
+                    setType(t);
+                    setTypeOpen(false);
+                  }}
+                  className={`block w-full px-4 py-2 text-left text-sm capitalize transition-colors ${
+                    type === t
+                      ? "bg-surface-hover text-foreground"
+                      : "text-muted-foreground hover:bg-surface-hover hover:text-foreground"
+                  }`}
+                >
+                  {t}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Tags — Chip Input */}
