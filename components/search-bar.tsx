@@ -102,10 +102,10 @@ export function SearchBar({
               )}
             >
               {contextLabel}
-              <ChevronDown className="h-3 w-3" />
+              <ChevronDown className={`h-3 w-3 transition-transform duration-200 ${contextOpen ? "rotate-180" : ""}`} />
             </button>
             {contextOpen && (
-              <div className="absolute right-0 top-full z-50 mt-1 min-w-[120px] rounded-lg border border-border bg-surface py-1 shadow-lg">
+              <div className="absolute right-0 top-full z-50 mt-1 min-w-[120px] animate-slide-down-fade rounded-lg border border-border bg-surface py-1 shadow-lg">
                 <button
                   onClick={() => {
                     onContextChange("");

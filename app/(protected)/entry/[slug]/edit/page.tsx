@@ -251,8 +251,10 @@ export default function EditEntryPage() {
 
   if (pageLoading) {
     return (
-      <div className="py-12 text-center text-sm text-muted-foreground">
-        Loading...
+      <div className="flex items-center justify-center gap-1.5 py-12">
+        <span className="h-2 w-2 rounded-full bg-muted-foreground/40 animate-pulse-dot" style={{ animationDelay: "0ms" }} />
+        <span className="h-2 w-2 rounded-full bg-muted-foreground/40 animate-pulse-dot" style={{ animationDelay: "160ms" }} />
+        <span className="h-2 w-2 rounded-full bg-muted-foreground/40 animate-pulse-dot" style={{ animationDelay: "320ms" }} />
       </div>
     );
   }
@@ -282,11 +284,11 @@ export default function EditEntryPage() {
     "w-full rounded-lg border border-border bg-secondary px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring";
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-4 fade-in-up">
       <div className="space-y-2">
         <Link
           href={`/entry/${entry.slug}`}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground"
+          className="btn-press inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground"
         >
           <ArrowLeft className="h-4 w-4" />
           Back
@@ -432,7 +434,7 @@ export default function EditEntryPage() {
             </button>
           </div>
           {contextOpen && (filteredContexts.length > 0 || showCreateOption) && (
-            <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-[160px] overflow-y-auto rounded-lg border border-border bg-surface py-1 shadow-lg">
+            <div className="absolute left-0 right-0 top-full z-50 mt-1 max-h-[160px] animate-slide-down-fade overflow-y-auto rounded-lg border border-border bg-surface py-1 shadow-lg">
               {filteredContexts.map((ctx) => (
                 <button
                   key={ctx}
@@ -467,7 +469,7 @@ export default function EditEntryPage() {
             <ChevronDown className={`h-3.5 w-3.5 text-muted-foreground transition-transform ${typeOpen ? "rotate-180" : ""}`} />
           </button>
           {typeOpen && (
-            <div className="absolute left-0 right-0 top-full z-50 mt-1 rounded-lg border border-border bg-surface py-1 shadow-lg">
+            <div className="absolute left-0 right-0 top-full z-50 mt-1 animate-slide-down-fade rounded-lg border border-border bg-surface py-1 shadow-lg">
               {["note", "idea", "snippet", "experience"].map((t) => (
                 <button
                   key={t}
@@ -595,7 +597,7 @@ export default function EditEntryPage() {
       <button
         type="submit"
         disabled={loading || !title.trim() || !context.trim() || !hasContent}
-        className="w-full rounded-lg bg-foreground py-3 text-sm font-medium text-background transition-opacity hover:opacity-90 disabled:opacity-50"
+        className="btn-press w-full rounded-lg bg-foreground py-3 text-sm font-medium text-background transition-all hover:opacity-90 disabled:opacity-50"
       >
         {loading ? "Saving..." : "Save changes"}
       </button>

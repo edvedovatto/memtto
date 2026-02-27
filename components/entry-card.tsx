@@ -51,7 +51,7 @@ export const EntryCard = memo(function EntryCard({ entry }: { entry: Entry }) {
 
   return (
     <Link href={`/entry/${entry.slug}`}>
-      <div className="group overflow-hidden rounded-xl border border-border bg-surface transition-colors duration-200 ease-in-out hover:bg-surface-hover">
+      <div className="group overflow-hidden rounded-xl border border-border bg-surface transition-all duration-200 ease-[cubic-bezier(0.16,1,0.3,1)] hover:bg-surface-hover hover:-translate-y-[2px] hover:shadow-lg hover:shadow-black/20">
         {/* Banner image for wide/ultrawide images */}
         {hasImage && imageLayout === "top" && (
           <div className="overflow-hidden">
@@ -93,8 +93,9 @@ export const EntryCard = memo(function EntryCard({ entry }: { entry: Entry }) {
                 className="-mr-1 ml-1 rounded-md p-2 transition-colors hover:text-accent"
               >
                 <Heart
+                  key={isFav ? "fav" : "not-fav"}
                   className={`h-4 w-4 ${
-                    isFav ? "fill-accent text-accent" : ""
+                    isFav ? "fill-accent text-accent animate-heart-bounce" : ""
                   }`}
                 />
               </button>

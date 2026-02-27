@@ -98,12 +98,12 @@ export default function HomePage() {
           selectedContext={context}
           onContextChange={setContext}
           size={showResults ? "default" : "lg"}
-          className="w-full max-w-[720px]"
+          className="relative z-20 w-full max-w-[720px]"
         />
 
         {/* Favorites strip — below search bar, only when idle */}
         {!showResults && favorites.length > 0 && (
-          <div className="relative mt-4 w-full max-w-[720px] fade-in-up">
+          <div className="relative mt-4 w-full max-w-[720px]">
             <div
               className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide scroll-smooth"
               onScroll={(e) => setFavScrolled(e.currentTarget.scrollLeft > 0)}
@@ -114,11 +114,16 @@ export default function HomePage() {
                 }
               }}
             >
-              {favorites.map((fav) => (
+              {favorites.map((fav, index) => (
                 <Link
                   key={fav.id}
                   href={`/entry/${fav.slug}`}
-                  className="flex-shrink-0 rounded-full border border-border bg-surface px-4 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground"
+                  className="flex-shrink-0 rounded-full border border-border bg-surface px-4 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground fade-in-up"
+                  style={{
+                    opacity: 0,
+                    animationDelay: `${index * 50}ms`,
+                    animationFillMode: "forwards",
+                  }}
                 >
                   {fav.title}
                 </Link>
@@ -135,8 +140,10 @@ export default function HomePage() {
       {showResults && (
         <div className="mx-auto mt-6 w-full max-w-[720px] fade-in-up">
           {loading ? (
-            <div className="py-16 text-center text-sm text-muted-foreground/60">
-              Searching...
+            <div className="flex items-center justify-center gap-1.5 py-16">
+              <span className="h-2 w-2 rounded-full bg-muted-foreground/40 animate-pulse-dot" style={{ animationDelay: "0ms" }} />
+              <span className="h-2 w-2 rounded-full bg-muted-foreground/40 animate-pulse-dot" style={{ animationDelay: "160ms" }} />
+              <span className="h-2 w-2 rounded-full bg-muted-foreground/40 animate-pulse-dot" style={{ animationDelay: "320ms" }} />
             </div>
           ) : entries.length === 0 ? (
             <div className="py-16 text-center fade-in-up">

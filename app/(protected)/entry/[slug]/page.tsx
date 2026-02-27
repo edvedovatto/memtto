@@ -22,6 +22,7 @@ export default function EntryDetailPage() {
   const [entry, setEntry] = useState<Entry | null>(null);
   const [loading, setLoading] = useState(true);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [closingModal, setClosingModal] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [checklistItems, setChecklistItems] = useState<ChecklistItem[]>([]);
   const [isFav, setIsFav] = useState(false);
@@ -98,10 +99,20 @@ export default function EntryDetailPage() {
     }
   }
 
+  function handleCloseModal() {
+    setClosingModal(true);
+    setTimeout(() => {
+      setShowDeleteConfirm(false);
+      setClosingModal(false);
+    }, 200);
+  }
+
   if (loading) {
     return (
-      <div className="py-12 text-center text-sm text-muted-foreground">
-        Loading...
+      <div className="flex items-center justify-center gap-1.5 py-12">
+        <span className="h-2 w-2 rounded-full bg-muted-foreground/40 animate-pulse-dot" style={{ animationDelay: "0ms" }} />
+        <span className="h-2 w-2 rounded-full bg-muted-foreground/40 animate-pulse-dot" style={{ animationDelay: "160ms" }} />
+        <span className="h-2 w-2 rounded-full bg-muted-foreground/40 animate-pulse-dot" style={{ animationDelay: "320ms" }} />
       </div>
     );
   }
@@ -121,11 +132,11 @@ export default function EntryDetailPage() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 fade-in-up">
       <div className="space-y-2">
         <Link
           href="/"
-          className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground"
+          className="btn-press inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground"
         >
           <ArrowLeft className="h-4 w-4" />
           Back
@@ -136,20 +147,20 @@ export default function EntryDetailPage() {
             <button
               type="button"
               onClick={handleToggleFavorite}
-              className="rounded-lg border border-border p-2.5 text-muted-foreground transition-colors hover:bg-surface-hover hover:text-accent"
+              className="btn-press rounded-lg border border-border p-2.5 text-muted-foreground transition-colors hover:bg-surface-hover hover:text-accent"
             >
-              <Heart className={`h-[18px] w-[18px] ${isFav ? "fill-accent text-accent" : ""}`} />
+              <Heart key={isFav ? "fav" : "not-fav"} className={`h-[18px] w-[18px] ${isFav ? "fill-accent text-accent animate-heart-bounce" : ""}`} />
             </button>
             <Link
               href={`/entry/${entry.slug}/edit`}
-              className="rounded-lg border border-border p-2.5 text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground"
+              className="btn-press rounded-lg border border-border p-2.5 text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground"
             >
               <Pencil className="h-[18px] w-[18px]" />
             </Link>
             <button
               type="button"
               onClick={() => setShowDeleteConfirm(true)}
-              className="rounded-lg border border-border p-2.5 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+              className="btn-press rounded-lg border border-border p-2.5 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
             >
               <Trash2 className="h-[18px] w-[18px]" />
             </button>
@@ -170,8 +181,8 @@ export default function EntryDetailPage() {
 
       {/* Delete confirmation modal */}
       {showDeleteConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
-          <div className="mx-4 w-full max-w-sm rounded-lg border border-border bg-surface p-6 shadow-lg">
+        <div className={`fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm ${closingModal ? "animate-fade-out" : "animate-fade-in"}`}>
+          <div className={`mx-4 w-full max-w-sm rounded-lg border border-border bg-surface p-6 shadow-lg ${closingModal ? "animate-scale-out" : "animate-scale-in"}`}>
             <h2 className="text-base font-semibold text-foreground">Delete entry?</h2>
             <p className="mt-2 text-sm text-muted-foreground">
               This action cannot be undone. The entry &quot;{entry.title}&quot; will be permanently deleted.
@@ -179,9 +190,9 @@ export default function EntryDetailPage() {
             <div className="mt-4 flex justify-end gap-2">
               <button
                 type="button"
-                onClick={() => setShowDeleteConfirm(false)}
+                onClick={handleCloseModal}
                 disabled={deleting}
-                className="rounded-lg border border-border px-4 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground"
+                className="btn-press rounded-lg border border-border px-4 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground"
               >
                 Cancel
               </button>
@@ -189,7 +200,7 @@ export default function EntryDetailPage() {
                 type="button"
                 onClick={handleDelete}
                 disabled={deleting}
-                className="rounded-lg bg-destructive px-4 py-2.5 text-sm font-medium text-destructive-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
+                className="btn-press rounded-lg bg-destructive px-4 py-2.5 text-sm font-medium text-destructive-foreground transition-all hover:opacity-90 disabled:opacity-50"
               >
                 {deleting ? "Deleting..." : "Delete"}
               </button>

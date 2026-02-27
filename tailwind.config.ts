@@ -40,9 +40,46 @@ const config: Config = {
           "0%": { opacity: "0", transform: "translateY(8px)" },
           "100%": { opacity: "1", transform: "translateY(0)" },
         },
+        "fade-in": {
+          "0%": { opacity: "0" },
+          "100%": { opacity: "1" },
+        },
+        "fade-out": {
+          "0%": { opacity: "1" },
+          "100%": { opacity: "0" },
+        },
+        "scale-in": {
+          "0%": { opacity: "0", transform: "scale(0.95)" },
+          "100%": { opacity: "1", transform: "scale(1)" },
+        },
+        "scale-out": {
+          "0%": { opacity: "1", transform: "scale(1)" },
+          "100%": { opacity: "0", transform: "scale(0.95)" },
+        },
+        "slide-down-fade": {
+          "0%": { opacity: "0", transform: "translateY(-4px)" },
+          "100%": { opacity: "1", transform: "translateY(0)" },
+        },
+        "heart-bounce": {
+          "0%": { transform: "scale(1)" },
+          "25%": { transform: "scale(1.3)" },
+          "50%": { transform: "scale(0.9)" },
+          "100%": { transform: "scale(1)" },
+        },
+        "pulse-dot": {
+          "0%, 80%, 100%": { opacity: "0.3", transform: "scale(0.8)" },
+          "40%": { opacity: "1", transform: "scale(1)" },
+        },
       },
       animation: {
         "fade-in-up": "fade-in-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards",
+        "fade-in": "fade-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards",
+        "fade-out": "fade-out 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards",
+        "scale-in": "scale-in 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards",
+        "scale-out": "scale-out 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards",
+        "slide-down-fade": "slide-down-fade 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards",
+        "heart-bounce": "heart-bounce 0.35s cubic-bezier(0.16, 1, 0.3, 1)",
+        "pulse-dot": "pulse-dot 1.4s ease-in-out infinite",
       },
     },
   },

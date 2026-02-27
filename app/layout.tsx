@@ -37,7 +37,23 @@ export default function RootLayout({
       </head>
       <body className={inter.className}>
         {children}
-        <Toaster theme="dark" position="bottom-center" duration={3000} />
+        <Toaster
+          theme="dark"
+          position="bottom-center"
+          duration={3000}
+          toastOptions={{
+            style: {
+              background: "#161b22",
+              border: "1px solid #2a3040",
+              color: "#e6edf3",
+              borderRadius: "0.75rem",
+              fontSize: "0.875rem",
+              boxShadow: "0 8px 30px rgba(0, 0, 0, 0.3)",
+            },
+          }}
+          gap={8}
+          offset={20}
+        />
       </body>
     </html>
   );
