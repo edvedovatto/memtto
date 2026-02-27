@@ -4,8 +4,8 @@ import { useState, useEffect, useRef } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowLeft, Star, Pencil, Trash2 } from "lucide-react";
-import { getEntryBySlug, deleteEntry, toggleChecklistItem } from "@/lib/services/entries";
+import { ArrowLeft, Star, Pencil, Trash2, Heart } from "lucide-react";
+import { getEntryBySlug, deleteEntry, toggleChecklistItem, toggleFavorite } from "@/lib/services/entries";
 import { toast } from "sonner";
 import type { Entry, ChecklistItem } from "@/types";
 
@@ -17,6 +17,7 @@ export default function EntryDetailPage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [checklistItems, setChecklistItems] = useState<ChecklistItem[]>([]);
+  const [isFav, setIsFav] = useState(false);
   const togglingRef = useRef(new Set<number>());
 
   useEffect(() => {
@@ -24,6 +25,7 @@ export default function EntryDetailPage() {
       try {
         const data = await getEntryBySlug(params.slug as string);
         setEntry(data);
+        if (data) setIsFav(data.is_favorite);
         if (data?.content_format === "checklist") {
           try {
             setChecklistItems(JSON.parse(data.content_text));
@@ -59,6 +61,18 @@ export default function EntryDetailPage() {
       );
     } finally {
       togglingRef.current.delete(index);
+    }
+  }
+
+  async function handleToggleFavorite() {
+    if (!entry) return;
+    const next = !isFav;
+    setIsFav(next);
+    try {
+      await toggleFavorite(entry.id, next);
+      window.dispatchEvent(new CustomEvent("favoritesChanged"));
+    } catch {
+      setIsFav(!next);
     }
   }
 
@@ -112,6 +126,13 @@ export default function EntryDetailPage() {
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-semibold text-foreground">{entry.title}</h1>
           <div className="flex items-center gap-1">
+            <button
+              type="button"
+              onClick={handleToggleFavorite}
+              className="rounded-md p-1.5 text-muted-foreground transition-colors hover:text-accent"
+            >
+              <Heart className={`h-4 w-4 ${isFav ? "fill-accent text-accent" : ""}`} />
+            </button>
             <Link
               href={`/entry/${entry.slug}/edit`}
               className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"

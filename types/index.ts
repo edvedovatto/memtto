@@ -34,7 +34,9 @@ export interface CreateEntryInput {
   price_cents?: number | null;
 }
 
-export type UpdateEntryInput = Partial<CreateEntryInput>;
+export type UpdateEntryInput = Partial<CreateEntryInput> & {
+  is_favorite?: boolean;
+};
 
 export interface SearchParams {
   query?: string;

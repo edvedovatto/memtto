@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import Link from "next/link";
 import { SearchBar } from "@/components/search-bar";
 import { EntryCard } from "@/components/entry-card";
-import { searchEntries, getContexts } from "@/lib/services/entries";
+import { searchEntries, getContexts, getFavorites } from "@/lib/services/entries";
 import type { Entry } from "@/types";
 
 export default function HomePage() {
@@ -11,6 +12,7 @@ export default function HomePage() {
   const [context, setContext] = useState("");
   const [entries, setEntries] = useState<Entry[]>([]);
   const [contexts, setContexts] = useState<string[]>([]);
+  const [favorites, setFavorites] = useState<Entry[]>([]);
   const [loading, setLoading] = useState(false);
 
   const isActive = query.length >= 2;
@@ -38,9 +40,20 @@ export default function HomePage() {
     fetchEntries();
   }, [fetchEntries]);
 
+  const loadFavorites = useCallback(() => {
+    getFavorites().then(setFavorites).catch(console.error);
+  }, []);
+
   useEffect(() => {
     getContexts().then(setContexts).catch(console.error);
-  }, []);
+    loadFavorites();
+  }, [loadFavorites]);
+
+  useEffect(() => {
+    const handler = () => loadFavorites();
+    window.addEventListener("favoritesChanged", handler);
+    return () => window.removeEventListener("favoritesChanged", handler);
+  }, [loadFavorites]);
 
   useEffect(() => {
     const reset = () => handleClear();
@@ -72,7 +85,7 @@ export default function HomePage() {
     <div className="relative flex flex-col" style={{ minHeight: "calc(100vh - 105px)" }}>
       {/* Search container — centered when idle, top when active */}
       <div
-        className={`flex w-full flex-col items-center transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+        className={`relative z-10 flex w-full flex-col items-center transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
           showResults ? "" : "flex-1 justify-center"
         }`}
       >
@@ -86,6 +99,25 @@ export default function HomePage() {
           size={showResults ? "default" : "lg"}
           className="w-full max-w-[720px]"
         />
+
+        {/* Favorites strip — below search bar, only when idle */}
+        {!showResults && favorites.length > 0 && (
+          <div className="relative mt-4 w-full max-w-[720px] fade-in-up">
+            <div className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide">
+              {favorites.map((fav) => (
+                <Link
+                  key={fav.id}
+                  href={`/entry/${fav.slug}`}
+                  className="flex-shrink-0 rounded-full border border-border bg-surface px-3 py-1 text-[12px] text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground"
+                >
+                  {fav.title}
+                </Link>
+              ))}
+            </div>
+            {/* Fade on right edge */}
+            <div className="pointer-events-none absolute right-0 top-0 h-full w-12 bg-gradient-to-l from-background to-transparent" />
+          </div>
+        )}
       </div>
 
       {/* Results area */}

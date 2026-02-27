@@ -38,7 +38,7 @@ Store and search ideas, notes, snippets and experiences in a dark-mode interface
 **1. Clone the repository**
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/memtto.git
+git clone https://github.com/edvedovatto/memtto.git
 cd memtto
 ```
 

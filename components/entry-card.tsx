@@ -3,7 +3,8 @@
 import { memo, useState } from "react";
 import Link from "next/link";
 // eslint-disable-next-line @next/next/no-img-element
-import { Star } from "lucide-react";
+import { Star, Heart } from "lucide-react";
+import { toggleFavorite } from "@/lib/services/entries";
 import type { Entry, ChecklistItem } from "@/types";
 
 function formatPrice(cents: number): string {
@@ -16,11 +17,25 @@ function formatPrice(cents: number): string {
 export const EntryCard = memo(function EntryCard({ entry }: { entry: Entry }) {
   const hasImage = !!entry.image_url;
   const [imageLayout, setImageLayout] = useState<"side" | "top">("side");
+  const [isFav, setIsFav] = useState(entry.is_favorite);
 
   function handleTagClick(e: React.MouseEvent, tag: string) {
     e.preventDefault();
     e.stopPropagation();
     window.dispatchEvent(new CustomEvent("searchByTag", { detail: tag }));
+  }
+
+  async function handleFavoriteClick(e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    const next = !isFav;
+    setIsFav(next);
+    try {
+      await toggleFavorite(entry.id, next);
+      window.dispatchEvent(new CustomEvent("favoritesChanged"));
+    } catch {
+      setIsFav(!next);
+    }
   }
 
   function handleImageLoad(e: React.SyntheticEvent<HTMLImageElement>) {
@@ -63,7 +78,7 @@ export const EntryCard = memo(function EntryCard({ entry }: { entry: Entry }) {
           )}
 
           <div className={`min-w-0 flex-1 ${hasImage && imageLayout === "side" ? "py-0.5 pr-1" : ""}`}>
-            {/* Header: context badge, type, date */}
+            {/* Header: context badge, type, date, favorite */}
             <div className="mb-1.5 flex items-center gap-2 text-[11px] text-muted-foreground/60">
               <span className="rounded border border-border px-1.5 py-0.5 font-medium text-muted-foreground">
                 {entry.context}
@@ -72,6 +87,17 @@ export const EntryCard = memo(function EntryCard({ entry }: { entry: Entry }) {
               <span className="ml-auto">
                 {new Date(entry.created_at).toLocaleDateString()}
               </span>
+              <button
+                type="button"
+                onClick={handleFavoriteClick}
+                className="ml-1 rounded-md p-0.5 transition-colors hover:text-accent"
+              >
+                <Heart
+                  className={`h-3.5 w-3.5 ${
+                    isFav ? "fill-accent text-accent" : ""
+                  }`}
+                />
+              </button>
             </div>
 
             <h3 className="text-[15px] font-medium leading-snug text-foreground group-hover:text-foreground/90">

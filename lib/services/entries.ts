@@ -237,6 +237,45 @@ export async function toggleChecklistItem(
   return items;
 }
 
+export async function toggleFavorite(
+  id: string,
+  isFavorite: boolean
+): Promise<void> {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) throw new Error("Not authenticated");
+
+  const { error } = await supabase
+    .from("entries")
+    .update({ is_favorite: isFavorite })
+    .eq("id", id)
+    .eq("user_id", user.id);
+
+  if (error) throw error;
+}
+
+export async function getFavorites(): Promise<Entry[]> {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) throw new Error("Not authenticated");
+
+  const { data, error } = await supabase
+    .from("entries")
+    .select("*")
+    .eq("user_id", user.id)
+    .eq("is_favorite", true)
+    .order("updated_at", { ascending: false });
+
+  if (error) throw error;
+  return (data as Entry[]) ?? [];
+}
+
 export async function getContexts(): Promise<string[]> {
   const supabase = createClient();
   const {
