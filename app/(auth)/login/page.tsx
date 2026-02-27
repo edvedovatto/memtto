@@ -91,7 +91,7 @@ export default function LoginPage() {
               setIsSignUp(false);
               setError("");
             }}
-            className="mt-4 w-full text-center text-xs text-muted-foreground transition-colors hover:text-foreground"
+            className="mt-4 w-full rounded-lg border border-border py-3 text-center text-sm text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground"
           >
             Back to sign in
           </button>
@@ -154,7 +154,7 @@ export default function LoginPage() {
             setIsSignUp(!isSignUp);
             setError("");
           }}
-          className="mt-4 w-full text-center text-xs text-muted-foreground transition-colors hover:text-foreground"
+          className="mt-4 w-full rounded-lg border border-border py-3 text-center text-sm text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground"
         >
           {isSignUp
             ? "Already have an account? Sign in"

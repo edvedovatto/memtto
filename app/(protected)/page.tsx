@@ -83,7 +83,7 @@ export default function HomePage() {
   const showResults = isActive || context !== "";
 
   return (
-    <div className="relative flex flex-col" style={{ minHeight: "calc(100vh - 105px)" }}>
+    <div className="relative flex flex-col" style={{ minHeight: "calc(100dvh - 109px)" }}>
       {/* Search container — centered when idle, top when active */}
       <div
         className={`relative z-10 flex w-full flex-col items-center transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
@@ -118,7 +118,7 @@ export default function HomePage() {
                 <Link
                   key={fav.id}
                   href={`/entry/${fav.slug}`}
-                  className="flex-shrink-0 rounded-full border border-border bg-surface px-3 py-1 text-[12px] text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground"
+                  className="flex-shrink-0 rounded-full border border-border bg-surface px-4 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground"
                 >
                   {fav.title}
                 </Link>

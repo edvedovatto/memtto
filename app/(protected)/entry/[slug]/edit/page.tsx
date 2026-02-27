@@ -286,9 +286,9 @@ export default function EditEntryPage() {
       <div className="space-y-2">
         <Link
           href={`/entry/${entry.slug}`}
-          className="inline-flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground"
         >
-          <ArrowLeft className="h-3.5 w-3.5" />
+          <ArrowLeft className="h-4 w-4" />
           Back
         </Link>
         <h1 className="text-lg font-semibold text-foreground">Edit entry</h1>
@@ -319,25 +319,25 @@ export default function EditEntryPage() {
         <button
           type="button"
           onClick={() => setContentFormat("text")}
-          className={`flex flex-1 items-center justify-center gap-2 rounded-md py-2 text-xs font-medium transition-all ${
+          className={`flex flex-1 items-center justify-center gap-2 rounded-md py-2 text-sm font-medium transition-all ${
             contentFormat === "text"
               ? "bg-surface text-foreground shadow-sm"
               : "text-muted-foreground/60 hover:text-muted-foreground"
           }`}
         >
-          <AlignLeft className="h-3.5 w-3.5" />
+          <AlignLeft className="h-4 w-4" />
           Text
         </button>
         <button
           type="button"
           onClick={() => setContentFormat("checklist")}
-          className={`flex flex-1 items-center justify-center gap-2 rounded-md py-2 text-xs font-medium transition-all ${
+          className={`flex flex-1 items-center justify-center gap-2 rounded-md py-2 text-sm font-medium transition-all ${
             contentFormat === "checklist"
               ? "bg-surface text-foreground shadow-sm"
               : "text-muted-foreground/60 hover:text-muted-foreground"
           }`}
         >
-          <ListChecks className="h-3.5 w-3.5" />
+          <ListChecks className="h-4 w-4" />
           Checklist
         </button>
       </div>
@@ -375,9 +375,9 @@ export default function EditEntryPage() {
                   <button
                     type="button"
                     onClick={() => removeChecklistItem(index)}
-                    className="text-muted-foreground/0 transition-colors group-hover/item:text-muted-foreground hover:!text-foreground"
+                    className="rounded-md p-1.5 text-muted-foreground/40 transition-colors hover:bg-surface-hover hover:text-foreground"
                   >
-                    <X className="h-3.5 w-3.5" />
+                    <X className="h-4 w-4" />
                   </button>
                 </div>
               ))}
@@ -501,9 +501,9 @@ export default function EditEntryPage() {
             <button
               type="button"
               onClick={() => removeTag(tag)}
-              className="ml-0.5 text-muted-foreground hover:text-foreground"
+              className="ml-0.5 rounded-full p-0.5 text-muted-foreground hover:text-foreground"
             >
-              <X className="h-3 w-3" />
+              <X className="h-3.5 w-3.5" />
             </button>
           </span>
         ))}
@@ -535,9 +535,9 @@ export default function EditEntryPage() {
           <button
             type="button"
             onClick={removeImage}
-            className="absolute right-2 top-2 rounded-full bg-background/80 p-1"
+            className="absolute right-2 top-2 rounded-full bg-background/80 p-2"
           >
-            <X className="h-4 w-4 text-foreground" />
+            <X className="h-5 w-5 text-foreground" />
           </button>
         </div>
       ) : (
@@ -563,7 +563,7 @@ export default function EditEntryPage() {
                 key={star}
                 type="button"
                 onClick={() => setRating(rating === star ? null : star)}
-                className="p-0.5 transition-colors"
+                className="p-1 transition-colors"
               >
                 <Star
                   className={`h-4 w-4 ${

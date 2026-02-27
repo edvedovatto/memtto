@@ -27,14 +27,14 @@ export function Header() {
         <div className="flex items-center gap-2">
           <Link
             href="/new"
-            className="flex items-center gap-1 rounded-lg bg-foreground px-3 py-1.5 text-xs font-medium text-background transition-opacity hover:opacity-90"
+            className="flex items-center gap-1.5 rounded-lg border border-border bg-surface px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground"
           >
-            <Plus className="h-3.5 w-3.5" />
+            <Plus className="h-4 w-4" />
             New
           </Link>
           <button
             onClick={handleSignOut}
-            className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:text-foreground"
+            className="rounded-lg border border-border p-2 text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground"
           >
             <LogOut className="h-4 w-4" />
           </button>

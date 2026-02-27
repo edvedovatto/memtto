@@ -9,6 +9,13 @@ import { getEntryBySlug, deleteEntry, toggleChecklistItem, toggleFavorite } from
 import { toast } from "sonner";
 import type { Entry, ChecklistItem } from "@/types";
 
+function formatPrice(cents: number): string {
+  const reais = (cents / 100).toFixed(2);
+  const [intPart, decPart] = reais.split(".");
+  const withThousands = intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ".");
+  return `R$ ${withThousands},${decPart}`;
+}
+
 export default function EntryDetailPage() {
   const params = useParams();
   const router = useRouter();
@@ -118,44 +125,44 @@ export default function EntryDetailPage() {
       <div className="space-y-2">
         <Link
           href="/"
-          className="inline-flex items-center gap-1 text-xs text-muted-foreground transition-colors hover:text-foreground"
+          className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-sm text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground"
         >
-          <ArrowLeft className="h-3.5 w-3.5" />
+          <ArrowLeft className="h-4 w-4" />
           Back
         </Link>
         <div className="flex items-center justify-between">
           <h1 className="text-xl font-semibold text-foreground">{entry.title}</h1>
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-2">
             <button
               type="button"
               onClick={handleToggleFavorite}
-              className="rounded-md p-1.5 text-muted-foreground transition-colors hover:text-accent"
+              className="rounded-lg border border-border p-2.5 text-muted-foreground transition-colors hover:bg-surface-hover hover:text-accent"
             >
-              <Heart className={`h-4 w-4 ${isFav ? "fill-accent text-accent" : ""}`} />
+              <Heart className={`h-[18px] w-[18px] ${isFav ? "fill-accent text-accent" : ""}`} />
             </button>
             <Link
               href={`/entry/${entry.slug}/edit`}
-              className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+              className="rounded-lg border border-border p-2.5 text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground"
             >
-              <Pencil className="h-4 w-4" />
+              <Pencil className="h-[18px] w-[18px]" />
             </Link>
             <button
               type="button"
               onClick={() => setShowDeleteConfirm(true)}
-              className="rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+              className="rounded-lg border border-border p-2.5 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
             >
-              <Trash2 className="h-4 w-4" />
+              <Trash2 className="h-[18px] w-[18px]" />
             </button>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <span className="rounded-md bg-secondary px-2 py-0.5 text-xs text-muted-foreground">
+          <span className="rounded-md bg-secondary px-2.5 py-1 text-sm text-muted-foreground">
             {entry.context}
           </span>
-          <span className="rounded-md bg-secondary px-2 py-0.5 text-xs text-muted-foreground">
+          <span className="rounded-md bg-secondary px-2.5 py-1 text-sm text-muted-foreground">
             {entry.type}
           </span>
-          <span className="text-xs text-muted-foreground">
+          <span className="text-sm text-muted-foreground">
             {new Date(entry.created_at).toLocaleDateString()}
           </span>
         </div>
@@ -165,8 +172,8 @@ export default function EntryDetailPage() {
       {showDeleteConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
           <div className="mx-4 w-full max-w-sm rounded-lg border border-border bg-surface p-6 shadow-lg">
-            <h2 className="text-sm font-semibold text-foreground">Delete entry?</h2>
-            <p className="mt-2 text-xs text-muted-foreground">
+            <h2 className="text-base font-semibold text-foreground">Delete entry?</h2>
+            <p className="mt-2 text-sm text-muted-foreground">
               This action cannot be undone. The entry &quot;{entry.title}&quot; will be permanently deleted.
             </p>
             <div className="mt-4 flex justify-end gap-2">
@@ -174,7 +181,7 @@ export default function EntryDetailPage() {
                 type="button"
                 onClick={() => setShowDeleteConfirm(false)}
                 disabled={deleting}
-                className="rounded-md px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
+                className="rounded-lg border border-border px-4 py-2.5 text-sm text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground"
               >
                 Cancel
               </button>
@@ -182,7 +189,7 @@ export default function EntryDetailPage() {
                 type="button"
                 onClick={handleDelete}
                 disabled={deleting}
-                className="rounded-md bg-destructive px-3 py-1.5 text-xs font-medium text-destructive-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
+                className="rounded-lg bg-destructive px-4 py-2.5 text-sm font-medium text-destructive-foreground transition-opacity hover:opacity-90 disabled:opacity-50"
               >
                 {deleting ? "Deleting..." : "Delete"}
               </button>
@@ -278,14 +285,14 @@ export default function EntryDetailPage() {
           )}
           {entry.price_cents != null && (
             <span className="text-sm text-muted-foreground">
-              R$ {(entry.price_cents / 100).toFixed(2).replace(".", ",")}
+              {formatPrice(entry.price_cents!)}
             </span>
           )}
         </div>
       )}
 
       {entry.tags.length > 0 && (
-        <div className="flex flex-wrap gap-1.5 border-t border-border pt-4">
+        <div className="flex flex-wrap gap-2 border-t border-border pt-4">
           {entry.tags.map((tag) => (
             <button
               key={tag}
@@ -296,7 +303,7 @@ export default function EntryDetailPage() {
                 );
                 router.push("/");
               }}
-              className="rounded bg-secondary px-2 py-0.5 text-xs text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground"
+              className="rounded-full bg-secondary px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground"
             >
               #{tag}
             </button>

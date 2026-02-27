@@ -73,9 +73,9 @@ export function SearchBar({
             ? "py-4 pl-12 text-base"
             : "py-3 pl-11 text-sm",
           showClear && showContextSelector
-            ? size === "lg" ? "pr-36" : "pr-32"
+            ? size === "lg" ? "pr-40" : "pr-36"
             : showClear
-            ? size === "lg" ? "pr-10" : "pr-9"
+            ? size === "lg" ? "pr-14" : "pr-12"
             : showContextSelector
             ? size === "lg" ? "pr-28" : "pr-24"
             : "pr-4"
@@ -86,9 +86,9 @@ export function SearchBar({
           <button
             type="button"
             onClick={onClear}
-            className="rounded-full p-1 text-muted-foreground transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:text-foreground hover:bg-surface-hover"
+            className="rounded-full p-2 text-muted-foreground transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:text-foreground hover:bg-surface-hover"
           >
-            <X className={cn(size === "lg" ? "h-4 w-4" : "h-3.5 w-3.5")} />
+            <X className={cn(size === "lg" ? "h-5 w-5" : "h-4 w-4")} />
           </button>
         )}
         {showContextSelector && (
@@ -112,7 +112,7 @@ export function SearchBar({
                     setContextOpen(false);
                   }}
                   className={cn(
-                    "block w-full px-3 py-1.5 text-left text-xs transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]",
+                    "block w-full px-3 py-2.5 text-left text-sm transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]",
                     selectedContext === ""
                       ? "text-foreground bg-surface-hover"
                       : "text-muted-foreground hover:text-foreground hover:bg-surface-hover"
@@ -128,7 +128,7 @@ export function SearchBar({
                       setContextOpen(false);
                     }}
                     className={cn(
-                      "block w-full px-3 py-1.5 text-left text-xs transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]",
+                      "block w-full px-3 py-2.5 text-left text-sm transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]",
                       selectedContext === ctx
                         ? "text-foreground bg-surface-hover"
                         : "text-muted-foreground hover:text-foreground hover:bg-surface-hover"

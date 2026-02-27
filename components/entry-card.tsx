@@ -90,10 +90,10 @@ export const EntryCard = memo(function EntryCard({ entry }: { entry: Entry }) {
               <button
                 type="button"
                 onClick={handleFavoriteClick}
-                className="ml-1 rounded-md p-0.5 transition-colors hover:text-accent"
+                className="-mr-1 ml-1 rounded-md p-2 transition-colors hover:text-accent"
               >
                 <Heart
-                  className={`h-3.5 w-3.5 ${
+                  className={`h-4 w-4 ${
                     isFav ? "fill-accent text-accent" : ""
                   }`}
                 />
@@ -184,13 +184,13 @@ export const EntryCard = memo(function EntryCard({ entry }: { entry: Entry }) {
 
             {/* Tags */}
             {entry.tags.length > 0 && (
-              <div className="mt-2 flex flex-wrap gap-1.5">
+              <div className="mt-2 flex flex-wrap gap-2">
                 {entry.tags.map((tag) => (
                   <button
                     key={tag}
                     type="button"
                     onClick={(e) => handleTagClick(e, tag)}
-                    className="text-[11px] text-muted-foreground/50 transition-colors hover:text-accent"
+                    className="rounded-full bg-surface-hover/50 px-2 py-0.5 text-xs text-muted-foreground/60 transition-colors hover:bg-surface-hover hover:text-accent"
                   >
                     #{tag}
                   </button>
