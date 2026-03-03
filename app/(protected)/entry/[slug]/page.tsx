@@ -202,7 +202,8 @@ export default function EntryDetailPage() {
             {entry.type}
           </span>
           <span className="text-sm text-muted-foreground">
-            {new Date(entry.created_at).toLocaleDateString()}
+            {new Date(entry.created_at).toLocaleDateString()}{" "}
+              {new Date(entry.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
           </span>
         </div>
       </div>
