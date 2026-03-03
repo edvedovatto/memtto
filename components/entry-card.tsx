@@ -85,8 +85,8 @@ export const EntryCard = memo(function EntryCard({ entry }: { entry: Entry }) {
               </span>
               <span>{entry.type}</span>
               <span className="ml-auto">
-                {new Date(entry.created_at).toLocaleDateString()}{" "}
-                  {new Date(entry.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                {new Date(entry.created_at).toLocaleDateString("pt-BR")}{" "}
+                  {new Date(entry.created_at).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
               </span>
               <button
                 type="button"
