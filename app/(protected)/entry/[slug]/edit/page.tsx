@@ -46,6 +46,7 @@ export default function EditEntryPage() {
   const [showImagePreview, setShowImagePreview] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [tried, setTried] = useState(false);
   const [rating, setRating] = useState<number | null>(null);
   const [priceRaw, setPriceRaw] = useState("");
   const [contentFormat, setContentFormat] = useState<"text" | "checklist">("text");
@@ -233,7 +234,11 @@ export default function EditEntryPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!entry || !title.trim() || !context.trim() || !hasContent) return;
+    if (!entry || !title.trim() || !context.trim() || !hasContent) {
+      setTried(true);
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
 
     setLoading(true);
     setError("");
@@ -303,7 +308,11 @@ export default function EditEntryPage() {
 
 
   const inputClass =
-    "w-full rounded-lg border border-border bg-secondary px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring";
+    "w-full rounded-lg border bg-secondary px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring";
+
+  const missingTitle = tried && !title.trim();
+  const missingContent = tried && !hasContent;
+  const missingContext = tried && !context.trim();
 
   return (
     <>
@@ -327,9 +336,8 @@ export default function EditEntryPage() {
             if (e.target.value.length <= TITLE_MAX) setTitle(e.target.value);
           }}
           placeholder="Title"
-          required
           maxLength={TITLE_MAX}
-          className={inputClass}
+          className={`${inputClass} ${missingTitle ? "border-destructive" : "border-border"}`}
         />
         <div className="mt-1 flex justify-end">
           <span className="text-[11px] text-muted-foreground">
@@ -377,7 +385,7 @@ export default function EditEntryPage() {
             placeholder="Content..."
             rows={6}
             maxLength={CONTENT_MAX}
-            className={`${inputClass} resize-none`}
+            className={`${inputClass} resize-none ${missingContent ? "border-destructive" : "border-border"}`}
           />
           <div className="mt-1 flex justify-end">
             <span className="text-[11px] text-muted-foreground">
@@ -386,7 +394,7 @@ export default function EditEntryPage() {
           </div>
         </div>
       ) : (
-        <div className="rounded-lg border border-border bg-secondary">
+        <div className={`rounded-lg border bg-secondary ${missingContent ? "border-destructive" : "border-border"}`}>
           {checklistItems.length > 0 && (
             <div className="divide-y divide-border/50">
               {checklistItems.map((item, index) => (
@@ -434,7 +442,7 @@ export default function EditEntryPage() {
                 <button
                   type="button"
                   onClick={() => setContextOpen(!contextOpen)}
-                  className="flex w-full items-center justify-between rounded-lg border border-border bg-secondary px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+                  className={`flex w-full items-center justify-between rounded-lg border bg-secondary px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring ${missingContext ? "border-destructive" : "border-border"}`}
                 >
                   <span className={`flex items-center gap-1.5 ${context ? "text-foreground" : "text-muted-foreground"}`}>
                     {context && <ContextIcon name={contextIcons[context]} className="h-4 w-4" />}
@@ -667,7 +675,7 @@ export default function EditEntryPage() {
 
           <button
             type="submit"
-            disabled={loading || !title.trim() || !context.trim() || !hasContent}
+            disabled={loading}
             className="btn-press w-full rounded-lg bg-foreground py-3 text-sm font-medium text-background transition-all hover:opacity-90 disabled:opacity-50"
           >
             {loading ? "Saving..." : "Save changes"}
