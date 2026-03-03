@@ -1,14 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import type { Entry, TagCount } from "@/types";
+import { ContextBreakdown } from "./context-breakdown";
+import type { Entry, TagCount, ContextCount } from "@/types";
 
 interface QuickAccessProps {
   favorites: Entry[];
   topTags: TagCount[];
+  contextCounts: ContextCount[];
 }
 
-export function QuickAccess({ favorites, topTags }: QuickAccessProps) {
+export function QuickAccess({ favorites, topTags, contextCounts }: QuickAccessProps) {
   function handleTagClick(tag: string) {
     window.dispatchEvent(new CustomEvent("searchByTag", { detail: tag }));
   }
@@ -77,6 +79,9 @@ export function QuickAccess({ favorites, topTags }: QuickAccessProps) {
           </div>
         </div>
       )}
+
+      {/* By context */}
+      {contextCounts.length > 0 && <ContextBreakdown contexts={contextCounts} />}
     </div>
   );
 }

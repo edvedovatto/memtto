@@ -7,7 +7,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { ArrowLeft, Star, Pencil, Trash2, Heart, X } from "lucide-react";
 import { EmptyState } from "@/components/empty-state";
-import { getEntryBySlug, deleteEntry, toggleChecklistItem, toggleFavorite } from "@/lib/services/entries";
+import { getEntryBySlug, deleteEntry, createEntry, toggleChecklistItem, toggleFavorite } from "@/lib/services/entries";
 import { toast } from "sonner";
 import type { Entry, ChecklistItem } from "@/types";
 
@@ -28,6 +28,7 @@ export default function EntryDetailPage() {
   const [deleting, setDeleting] = useState(false);
   const [checklistItems, setChecklistItems] = useState<ChecklistItem[]>([]);
   const [isFav, setIsFav] = useState(false);
+  const [exiting, setExiting] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [closingLightbox, setClosingLightbox] = useState(false);
   const togglingRef = useRef(new Set<number>());
@@ -108,15 +109,49 @@ export default function EntryDetailPage() {
   async function handleDelete() {
     if (!entry) return;
     setDeleting(true);
+    const savedEntry = { ...entry };
+
+    // Close modal, play exit animation
+    setShowDeleteConfirm(false);
+    setClosingModal(false);
+    setExiting(true);
+
     try {
       await deleteEntry(entry.id);
-      toast.success("Entry deleted");
-      router.push("/");
-      router.refresh();
-    } catch (err) {
+      // Navigate after animation
+      setTimeout(() => {
+        router.push("/");
+        router.refresh();
+        toast("Entry deleted", {
+          duration: 5000,
+          action: {
+            label: "Undo",
+            onClick: async () => {
+              try {
+                await createEntry({
+                  title: savedEntry.title,
+                  content_text: savedEntry.content_text,
+                  content_format: savedEntry.content_format,
+                  context: savedEntry.context,
+                  type: savedEntry.type,
+                  tags: savedEntry.tags,
+                  image_url: savedEntry.image_url || undefined,
+                  rating: savedEntry.rating ?? undefined,
+                  price_cents: savedEntry.price_cents ?? undefined,
+                });
+                router.refresh();
+                toast.success("Entry restored");
+              } catch {
+                toast.error("Failed to restore entry");
+              }
+            },
+          },
+        });
+      }, 300);
+    } catch {
       toast.error("Failed to delete entry");
       setDeleting(false);
-      setShowDeleteConfirm(false);
+      setExiting(false);
     }
   }
 
@@ -161,7 +196,7 @@ export default function EntryDetailPage() {
 
   return (
     <>
-    <div className="space-y-4 fade-in-up">
+    <div className={`space-y-4 ${exiting ? "animate-shrink-out" : "fade-in-up"}`}>
       <div className="space-y-2">
         <Link
           href="/"
@@ -214,7 +249,7 @@ export default function EntryDetailPage() {
           <div className={`mx-4 w-full max-w-sm rounded-lg border border-border bg-surface p-6 shadow-lg ${closingModal ? "animate-scale-out" : "animate-scale-in"}`}>
             <h2 className="text-base font-semibold text-foreground">Delete entry?</h2>
             <p className="mt-2 text-sm text-muted-foreground">
-              This action cannot be undone. The entry &quot;{entry.title}&quot; will be permanently deleted.
+              The entry &quot;{entry.title}&quot; will be deleted. You can undo this for a few seconds after.
             </p>
             <div className="mt-4 flex justify-end gap-2">
               <button

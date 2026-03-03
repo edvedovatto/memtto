@@ -1,10 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { StatCard } from "./stat-card";
 import { RecentEntries } from "./recent-entries";
 import { QuickAccess } from "./quick-access";
-import { ContextBreakdown } from "./context-breakdown";
 import { DashboardSkeleton } from "./dashboard-skeleton";
 import {
   getDashboardStats,
@@ -26,28 +25,35 @@ export function Dashboard({ favorites, contexts }: DashboardProps) {
   const [topTags, setTopTags] = useState<TagCount[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    async function load() {
-      try {
-        const [s, r, cc, tt] = await Promise.all([
-          getDashboardStats(),
-          getRecentEntries(5),
-          getContextCounts(),
-          getTopTags(8),
-        ]);
-        s.totalContexts = contexts.length;
-        setStats(s);
-        setRecent(r);
-        setContextCounts(cc);
-        setTopTags(tt);
-      } catch (err) {
-        console.error("Dashboard load error:", err);
-      } finally {
-        setLoading(false);
-      }
+  const reload = useCallback(async () => {
+    try {
+      const [s, r, cc, tt] = await Promise.all([
+        getDashboardStats(),
+        getRecentEntries(5),
+        getContextCounts(),
+        getTopTags(8),
+      ]);
+      s.totalContexts = contexts.length;
+      setStats(s);
+      setRecent(r);
+      setContextCounts(cc);
+      setTopTags(tt);
+    } catch (err) {
+      console.error("Dashboard load error:", err);
+    } finally {
+      setLoading(false);
     }
-    load();
   }, [contexts.length]);
+
+  useEffect(() => {
+    reload();
+  }, [reload]);
+
+  // Re-fetch when favorites or entries change
+  useEffect(() => {
+    window.addEventListener("favoritesChanged", reload);
+    return () => window.removeEventListener("favoritesChanged", reload);
+  }, [reload]);
 
   if (loading) {
     return <DashboardSkeleton />;
@@ -109,14 +115,9 @@ export function Dashboard({ favorites, contexts }: DashboardProps) {
           <RecentEntries entries={recent} />
         </div>
         <div className="xl:col-span-2">
-          <QuickAccess favorites={favorites} topTags={topTags} />
+          <QuickAccess favorites={favorites} topTags={topTags} contextCounts={contextCounts} />
         </div>
       </div>
-
-      {/* Context breakdown */}
-      {contextCounts.length > 0 && (
-        <ContextBreakdown contexts={contextCounts} />
-      )}
     </div>
   );
 }

@@ -74,6 +74,10 @@ const config: Config = {
           "0%": { backgroundPosition: "-200% 0" },
           "100%": { backgroundPosition: "200% 0" },
         },
+        "shrink-out": {
+          "0%": { opacity: "1", transform: "scale(1)" },
+          "100%": { opacity: "0", transform: "scale(0.95) translateY(8px)" },
+        },
       },
       animation: {
         "fade-in-up": "fade-in-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards",
@@ -85,6 +89,7 @@ const config: Config = {
         "heart-bounce": "heart-bounce 0.35s cubic-bezier(0.16, 1, 0.3, 1)",
         "pulse-dot": "pulse-dot 1.4s ease-in-out infinite",
         shimmer: "shimmer 1.5s ease-in-out infinite",
+        "shrink-out": "shrink-out 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards",
       },
     },
   },
