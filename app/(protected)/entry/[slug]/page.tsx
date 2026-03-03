@@ -5,9 +5,9 @@ import { createPortal } from "react-dom";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowLeft, Star, Pencil, Trash2, Heart, X } from "lucide-react";
+import { ArrowLeft, Star, Pencil, Trash2, Heart, Archive, X } from "lucide-react";
 import { EmptyState } from "@/components/empty-state";
-import { getEntryBySlug, deleteEntry, createEntry, toggleChecklistItem, toggleFavorite } from "@/lib/services/entries";
+import { getEntryBySlug, deleteEntry, createEntry, toggleChecklistItem, toggleFavorite, toggleArchive } from "@/lib/services/entries";
 import { toast } from "sonner";
 import type { Entry, ChecklistItem } from "@/types";
 
@@ -28,6 +28,7 @@ export default function EntryDetailPage() {
   const [deleting, setDeleting] = useState(false);
   const [checklistItems, setChecklistItems] = useState<ChecklistItem[]>([]);
   const [isFav, setIsFav] = useState(false);
+  const [isArchived, setIsArchived] = useState(false);
   const [exiting, setExiting] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [closingLightbox, setClosingLightbox] = useState(false);
@@ -38,7 +39,10 @@ export default function EntryDetailPage() {
       try {
         const data = await getEntryBySlug(params.slug as string);
         setEntry(data);
-        if (data) setIsFav(data.is_favorite);
+        if (data) {
+          setIsFav(data.is_favorite);
+          setIsArchived(data.is_archived);
+        }
         if (data?.content_format === "checklist") {
           try {
             setChecklistItems(JSON.parse(data.content_text));
@@ -113,6 +117,20 @@ export default function EntryDetailPage() {
       window.dispatchEvent(new CustomEvent("favoritesChanged"));
     } catch {
       setIsFav(!next);
+    }
+  }
+
+  async function handleToggleArchive() {
+    if (!entry) return;
+    const next = !isArchived;
+    setIsArchived(next);
+    try {
+      await toggleArchive(entry.id, next);
+      toast.success(next ? "Entry archived" : "Entry unarchived");
+      window.dispatchEvent(new CustomEvent("favoritesChanged"));
+    } catch {
+      setIsArchived(!next);
+      toast.error("Failed to update entry");
     }
   }
 
@@ -223,6 +241,14 @@ export default function EntryDetailPage() {
               className="btn-press rounded-lg border border-border p-2.5 text-muted-foreground transition-colors hover:bg-surface-hover hover:text-accent"
             >
               <Heart key={isFav ? "fav" : "not-fav"} className={`h-[18px] w-[18px] ${isFav ? "fill-accent text-accent animate-heart-bounce" : ""}`} />
+            </button>
+            <button
+              type="button"
+              onClick={handleToggleArchive}
+              className={`btn-press rounded-lg border border-border p-2.5 transition-colors hover:bg-surface-hover ${isArchived ? "text-accent" : "text-muted-foreground hover:text-foreground"}`}
+              title={isArchived ? "Unarchive" : "Archive"}
+            >
+              <Archive className="h-[18px] w-[18px]" />
             </button>
             <Link
               href={`/entry/${entry.slug}/edit`}

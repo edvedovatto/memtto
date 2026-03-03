@@ -334,7 +334,7 @@ export default function HomePage() {
             </div>
           ) : (
             <div className="space-y-4">
-              <div className="flex items-center gap-2 fade-in-up">
+              <div className="relative z-10 flex items-center gap-2 fade-in-up">
                 {viewFilter !== "all" && (
                   <span className="text-xs font-medium text-foreground/70 capitalize">
                     {viewFilter === "favorites" ? "Favorites" : "Archived"}
