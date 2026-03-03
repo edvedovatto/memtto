@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Loader2 } from "lucide-react";
 import { signIn, signUp } from "@/lib/services/auth";
 
 function getFriendlyError(message: string, isSignUp: boolean): string {
@@ -35,6 +36,7 @@ export default function LoginPage() {
   const [isSignUp, setIsSignUp] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
   const [confirmEmail, setConfirmEmail] = useState(false);
 
   async function handleSubmit(e: React.FormEvent) {
@@ -55,14 +57,25 @@ export default function LoginPage() {
       } else {
         await signIn(email, password);
       }
+      setSuccess(true);
       router.push("/");
       router.refresh();
     } catch (err) {
       const raw = err instanceof Error ? err.message : "Unknown error";
       setError(getFriendlyError(raw, isSignUp));
-    } finally {
       setLoading(false);
     }
+  }
+
+  if (success) {
+    return (
+      <div className="flex min-h-screen items-center justify-center px-4">
+        <div className="flex flex-col items-center gap-4 animate-fade-in">
+          <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+          <p className="text-sm text-muted-foreground">Signing in...</p>
+        </div>
+      </div>
+    );
   }
 
   if (confirmEmail) {
