@@ -76,3 +76,38 @@ export interface TagCount {
   tag: string;
   count: number;
 }
+
+// ── Habits ────────────────────────────────
+
+export interface Habit {
+  id: string;
+  user_id: string;
+  name: string;
+  icon: string;
+  is_archived: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface HabitLog {
+  id: string;
+  habit_id: string;
+  user_id: string;
+  logged_date: string;
+  created_at: string;
+}
+
+export interface CreateHabitInput {
+  name: string;
+  icon?: string;
+}
+
+export interface UpdateHabitInput {
+  name?: string;
+  icon?: string;
+}
+
+export interface HabitWithStatus extends Habit {
+  completedToday: boolean;
+  currentStreak: number;
+}

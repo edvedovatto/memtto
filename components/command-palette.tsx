@@ -9,6 +9,7 @@ import {
   Layers,
   Heart,
   Archive,
+  Target,
   Settings,
 } from "lucide-react";
 import { getContexts } from "@/lib/services/entries";
@@ -112,6 +113,12 @@ export function CommandPalette() {
       label: "Archived",
       icon: <Archive className="h-4 w-4" />,
       handler: () => dispatch("selectView", "archived"),
+    },
+    {
+      id: "habits",
+      label: "Habits",
+      icon: <Target className="h-4 w-4" />,
+      handler: () => navigate("/habits"),
     },
     {
       id: "settings",

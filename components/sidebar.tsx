@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
-import { Plus, LogOut, Layers, Heart, Archive, Settings } from "lucide-react";
+import { Plus, LogOut, Layers, Heart, Archive, Target, Settings } from "lucide-react";
 import { getContexts, getContextSettings } from "@/lib/services/entries";
 import { signOut } from "@/lib/services/auth";
 import { ContextIcon } from "@/components/context-icon";
@@ -124,6 +124,18 @@ export function Sidebar() {
           Archived
         </button>
       </nav>
+
+      {/* Habits */}
+      <div className="mt-4 px-3">
+        <Link
+          href="/habits"
+          onClick={() => { setActiveView(""); setActiveContext(""); }}
+          className={`${navItemBase} ${pathname === "/habits" ? navItemActive : navItemIdle}`}
+        >
+          <Target className="h-4 w-4" />
+          Habits
+        </Link>
+      </div>
 
       {/* Contexts */}
       {contexts.length > 0 && (
