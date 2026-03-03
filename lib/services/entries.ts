@@ -89,6 +89,7 @@ export async function searchEntries(params: SearchParams): Promise<Entry[]> {
     .from("entries")
     .select("*")
     .eq("user_id", user.id)
+    .eq("is_archived", false)
     .order(sortField, { ascending, nullsFirst: false });
 
   if (params.query && params.query.length >= 2) {
@@ -310,6 +311,7 @@ export async function getFavorites(): Promise<Entry[]> {
     .select("*")
     .eq("user_id", user.id)
     .eq("is_favorite", true)
+    .eq("is_archived", false)
     .order("updated_at", { ascending: false });
 
   if (error) throw error;
