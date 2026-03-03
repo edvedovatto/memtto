@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { EntryCard } from "@/components/entry-card";
+import { EmptyState } from "@/components/empty-state";
 import type { Entry } from "@/types";
 
 interface RecentEntriesProps {
@@ -15,15 +15,21 @@ export function RecentEntries({ entries }: RecentEntriesProps) {
         Recent
       </h2>
       {entries.length === 0 ? (
-        <div className="rounded-xl border border-border bg-surface p-6 text-center">
-          <p className="text-sm text-muted-foreground/60">No entries yet.</p>
-          <Link
-            href="/new"
-            className="mt-2 inline-block text-sm text-accent hover:underline"
-          >
-            Create your first entry
-          </Link>
-        </div>
+        <EmptyState
+          icon={
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 3h7a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5" />
+              <line x1="8" y1="10" x2="16" y2="10" />
+              <line x1="8" y1="14" x2="16" y2="14" />
+              <line x1="8" y1="18" x2="12" y2="18" />
+            </svg>
+          }
+          title="No entries yet"
+          description="Start capturing your thoughts and ideas."
+          actionLabel="Create your first entry"
+          actionHref="/new"
+          compact
+        />
       ) : (
         <div className="flex flex-col gap-4">
           {entries.map((entry, index) => (

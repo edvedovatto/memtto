@@ -35,7 +35,7 @@ export function QuickAccess({ favorites, topTags }: QuickAccessProps) {
           )}
         </div>
         {favorites.length === 0 ? (
-          <p className="text-sm text-muted-foreground/60">No favorites yet.</p>
+          <p className="text-sm text-muted-foreground/50">No favorites yet. Heart an entry to see it here.</p>
         ) : (
           <div className="space-y-1.5">
             {favorites.slice(0, 6).map((fav) => (

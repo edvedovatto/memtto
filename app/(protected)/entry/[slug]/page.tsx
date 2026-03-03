@@ -6,6 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowLeft, Star, Pencil, Trash2, Heart, X } from "lucide-react";
+import { EmptyState } from "@/components/empty-state";
 import { getEntryBySlug, deleteEntry, toggleChecklistItem, toggleFavorite } from "@/lib/services/entries";
 import { toast } from "sonner";
 import type { Entry, ChecklistItem } from "@/types";
@@ -139,14 +140,21 @@ export default function EntryDetailPage() {
 
   if (!entry) {
     return (
-      <div className="py-12 text-center">
-        <p className="text-sm text-muted-foreground">Entry not found.</p>
-        <Link
-          href="/"
-          className="mt-4 inline-block text-xs text-foreground underline"
-        >
-          Go back
-        </Link>
+      <div className="py-12">
+        <EmptyState
+          icon={
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+              <polyline points="14 2 14 8 20 8" />
+              <line x1="12" y1="11" x2="12" y2="17" />
+              <line x1="9" y1="14" x2="15" y2="14" />
+            </svg>
+          }
+          title="Entry not found"
+          description="This entry may have been deleted or moved."
+          actionLabel="Go home"
+          actionHref="/"
+        />
       </div>
     );
   }

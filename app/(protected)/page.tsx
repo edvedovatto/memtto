@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { SearchBar } from "@/components/search-bar";
 import { EntryCard } from "@/components/entry-card";
+import { EmptyState } from "@/components/empty-state";
 import { Dashboard } from "@/components/dashboard/dashboard";
 import {
   searchEntries,
@@ -218,10 +219,47 @@ export default function HomePage() {
               <span className="h-2 w-2 rounded-full bg-muted-foreground/40 animate-pulse-dot" style={{ animationDelay: "320ms" }} />
             </div>
           ) : entries.length === 0 ? (
-            <div className="py-16 text-center fade-in-up">
-              <p className="text-sm text-muted-foreground/60">
-                No results found.
-              </p>
+            <div className="py-8">
+              {viewFilter === "favorites" ? (
+                <EmptyState
+                  icon={
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                    </svg>
+                  }
+                  title="No favorites yet"
+                  description="Heart an entry to save it here."
+                  actionLabel="Browse entries"
+                  onAction={() => {
+                    handleClear();
+                    window.dispatchEvent(new CustomEvent("selectView", { detail: "all" }));
+                  }}
+                />
+              ) : viewFilter === "archived" ? (
+                <EmptyState
+                  icon={
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="21 8 21 21 3 21 3 8" />
+                      <rect x="1" y="3" width="22" height="5" />
+                      <line x1="10" y1="12" x2="14" y2="12" />
+                    </svg>
+                  }
+                  title="No archived entries"
+                  description="Archived entries will appear here."
+                />
+              ) : (
+                <EmptyState
+                  icon={
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="11" cy="11" r="8" />
+                      <line x1="21" y1="21" x2="16.65" y2="16.65" />
+                      <line x1="8" y1="11" x2="14" y2="11" />
+                    </svg>
+                  }
+                  title="No results found"
+                  description="Try a different search term or filter."
+                />
+              )}
             </div>
           ) : (
             <div className="space-y-4">
