@@ -127,7 +127,7 @@ export function Sidebar() {
 
       {/* Contexts */}
       {contexts.length > 0 && (
-        <div className="mt-6 flex-1 overflow-y-auto scrollbar-hide px-3">
+        <div className="mt-6 flex-1 overflow-y-auto px-3">
           <p className="mb-2 px-3 text-[11px] font-medium uppercase tracking-wider text-muted-foreground/50">
             Contexts
           </p>

@@ -375,7 +375,7 @@ export default function NewEntryPage() {
                 </button>
                 {contextOpen && contexts.length > 0 && (
                   <div
-                    className="absolute left-0 right-0 top-full z-50 mt-1 max-h-[160px] animate-slide-down-fade overflow-y-auto rounded-lg border border-border bg-surface py-1 shadow-lg scrollbar-hide"
+                    className="absolute left-0 right-0 top-full z-50 mt-1 max-h-[160px] animate-slide-down-fade overflow-y-auto rounded-lg border border-border bg-surface py-1 shadow-lg"
                     style={{ boxShadow: "inset 0 -12px 8px -8px rgba(0,0,0,0.4)" }}
                   >
                     {contexts.map((ctx) => (
