@@ -5,6 +5,7 @@ import { StatCard } from "./stat-card";
 import { RecentEntries } from "./recent-entries";
 import { QuickAccess } from "./quick-access";
 import { ContextBreakdown } from "./context-breakdown";
+import { DashboardSkeleton } from "./dashboard-skeleton";
 import {
   getDashboardStats,
   getRecentEntries,
@@ -49,13 +50,7 @@ export function Dashboard({ favorites, contexts }: DashboardProps) {
   }, [contexts.length]);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center gap-1.5 py-24">
-        <span className="h-2 w-2 rounded-full bg-muted-foreground/40 animate-pulse-dot" style={{ animationDelay: "0ms" }} />
-        <span className="h-2 w-2 rounded-full bg-muted-foreground/40 animate-pulse-dot" style={{ animationDelay: "160ms" }} />
-        <span className="h-2 w-2 rounded-full bg-muted-foreground/40 animate-pulse-dot" style={{ animationDelay: "320ms" }} />
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
   return (

@@ -70,6 +70,10 @@ const config: Config = {
           "0%, 80%, 100%": { opacity: "0.3", transform: "scale(0.8)" },
           "40%": { opacity: "1", transform: "scale(1)" },
         },
+        shimmer: {
+          "0%": { backgroundPosition: "-200% 0" },
+          "100%": { backgroundPosition: "200% 0" },
+        },
       },
       animation: {
         "fade-in-up": "fade-in-up 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards",
@@ -80,6 +84,7 @@ const config: Config = {
         "slide-down-fade": "slide-down-fade 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards",
         "heart-bounce": "heart-bounce 0.35s cubic-bezier(0.16, 1, 0.3, 1)",
         "pulse-dot": "pulse-dot 1.4s ease-in-out infinite",
+        shimmer: "shimmer 1.5s ease-in-out infinite",
       },
     },
   },

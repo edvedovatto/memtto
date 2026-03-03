@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { SearchBar } from "@/components/search-bar";
 import { EntryCard } from "@/components/entry-card";
+import { EntryCardSkeleton } from "@/components/entry-card-skeleton";
 import { EmptyState } from "@/components/empty-state";
 import { Dashboard } from "@/components/dashboard/dashboard";
 import {
@@ -213,10 +214,20 @@ export default function HomePage() {
       {showResults && (
         <div className="mx-auto mt-6 w-full max-w-[720px] fade-in-up">
           {loading ? (
-            <div className="flex items-center justify-center gap-1.5 py-16">
-              <span className="h-2 w-2 rounded-full bg-muted-foreground/40 animate-pulse-dot" style={{ animationDelay: "0ms" }} />
-              <span className="h-2 w-2 rounded-full bg-muted-foreground/40 animate-pulse-dot" style={{ animationDelay: "160ms" }} />
-              <span className="h-2 w-2 rounded-full bg-muted-foreground/40 animate-pulse-dot" style={{ animationDelay: "320ms" }} />
+            <div className="flex flex-col gap-6">
+              {[0, 1, 2].map((i) => (
+                <div
+                  key={i}
+                  className="fade-in-up"
+                  style={{
+                    opacity: 0,
+                    animationDelay: `${i * 80}ms`,
+                    animationFillMode: "forwards",
+                  }}
+                >
+                  <EntryCardSkeleton />
+                </div>
+              ))}
             </div>
           ) : entries.length === 0 ? (
             <div className="py-8">
