@@ -19,7 +19,7 @@ export default function ProtectedLayout({
       <Sidebar />
 
       {/* Main content — offset by sidebar on desktop */}
-      <main className="mx-auto max-w-2xl px-4 py-6 lg:ml-64 lg:px-8">
+      <main className="mx-auto max-w-2xl px-4 py-6 lg:ml-64 lg:max-w-5xl lg:px-8">
         {children}
       </main>
     </div>

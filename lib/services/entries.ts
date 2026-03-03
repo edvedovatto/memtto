@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/client";
-import type { Entry, CreateEntryInput, UpdateEntryInput, SearchParams, ChecklistItem } from "@/types";
+import type { Entry, CreateEntryInput, UpdateEntryInput, SearchParams, ChecklistItem, DashboardStats, ContextCount, TagCount } from "@/types";
 
 function slugify(text: string): string {
   const charMap: Record<string, string> = {
@@ -367,4 +367,115 @@ export async function getContexts(): Promise<string[]> {
 
   const contexts = Array.from(new Set((data ?? []).map((d) => d.context)));
   return contexts.sort();
+}
+
+export async function getDashboardStats(): Promise<DashboardStats> {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) throw new Error("Not authenticated");
+
+  const weekAgo = new Date();
+  weekAgo.setDate(weekAgo.getDate() - 7);
+
+  const [totalRes, favRes, weekRes] = await Promise.all([
+    supabase
+      .from("entries")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", user.id),
+    supabase
+      .from("entries")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", user.id)
+      .eq("is_favorite", true),
+    supabase
+      .from("entries")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", user.id)
+      .gte("created_at", weekAgo.toISOString()),
+  ]);
+
+  return {
+    totalEntries: totalRes.count ?? 0,
+    totalFavorites: favRes.count ?? 0,
+    totalContexts: 0, // filled by caller from contexts.length
+    entriesThisWeek: weekRes.count ?? 0,
+  };
+}
+
+export async function getRecentEntries(limit: number = 5): Promise<Entry[]> {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) throw new Error("Not authenticated");
+
+  const { data, error } = await supabase
+    .from("entries")
+    .select("*")
+    .eq("user_id", user.id)
+    .eq("is_archived", false)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+
+  if (error) throw error;
+  return (data as Entry[]) ?? [];
+}
+
+export async function getContextCounts(): Promise<ContextCount[]> {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) throw new Error("Not authenticated");
+
+  const { data, error } = await supabase
+    .from("entries")
+    .select("context")
+    .eq("user_id", user.id)
+    .eq("is_archived", false);
+
+  if (error) throw error;
+
+  const counts: Record<string, number> = {};
+  for (const row of data ?? []) {
+    counts[row.context] = (counts[row.context] || 0) + 1;
+  }
+
+  return Object.entries(counts)
+    .map(([context, count]) => ({ context, count }))
+    .sort((a, b) => b.count - a.count);
+}
+
+export async function getTopTags(limit: number = 8): Promise<TagCount[]> {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) throw new Error("Not authenticated");
+
+  const { data, error } = await supabase
+    .from("entries")
+    .select("tags")
+    .eq("user_id", user.id)
+    .eq("is_archived", false);
+
+  if (error) throw error;
+
+  const counts: Record<string, number> = {};
+  for (const row of data ?? []) {
+    for (const tag of row.tags ?? []) {
+      counts[tag] = (counts[tag] || 0) + 1;
+    }
+  }
+
+  return Object.entries(counts)
+    .map(([tag, count]) => ({ tag, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, limit);
 }

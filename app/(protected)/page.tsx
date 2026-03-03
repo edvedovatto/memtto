@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { SearchBar } from "@/components/search-bar";
 import { EntryCard } from "@/components/entry-card";
+import { Dashboard } from "@/components/dashboard/dashboard";
 import {
   searchEntries,
   getContexts,
@@ -148,10 +149,10 @@ export default function HomePage() {
 
   return (
     <div className="relative flex flex-col min-h-[calc(100dvh-109px)] lg:min-h-screen">
-      {/* Search container — centered when idle, top when active */}
+      {/* Search container — centered when idle (mobile), top when active or desktop */}
       <div
         className={`relative z-10 flex w-full flex-col items-center transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
-          showResults ? "" : "flex-1 justify-center"
+          showResults ? "" : "flex-1 justify-center lg:flex-none lg:justify-start"
         }`}
       >
         <SearchBar
@@ -165,9 +166,9 @@ export default function HomePage() {
           className="relative z-20 w-full max-w-[720px]"
         />
 
-        {/* Favorites strip — below search bar, only when idle */}
+        {/* Mobile: Favorites strip — below search bar, only when idle */}
         {!showResults && favorites.length > 0 && (
-          <div className="relative mt-4 w-full max-w-[720px]">
+          <div className="relative mt-4 w-full max-w-[720px] lg:hidden">
             <div
               className="flex items-center gap-2 overflow-x-auto pb-1 scrollbar-hide scroll-smooth"
               onScroll={(e) => setFavScrolled(e.currentTarget.scrollLeft > 0)}
@@ -199,6 +200,13 @@ export default function HomePage() {
           </div>
         )}
       </div>
+
+      {/* Desktop: Dashboard — only when idle */}
+      {!showResults && (
+        <div className="hidden lg:block w-full mt-8">
+          <Dashboard favorites={favorites} contexts={contexts} />
+        </div>
+      )}
 
       {/* Results area */}
       {showResults && (

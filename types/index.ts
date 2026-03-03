@@ -42,3 +42,20 @@ export interface SearchParams {
   query?: string;
   context?: string;
 }
+
+export interface DashboardStats {
+  totalEntries: number;
+  totalFavorites: number;
+  totalContexts: number;
+  entriesThisWeek: number;
+}
+
+export interface ContextCount {
+  context: string;
+  count: number;
+}
+
+export interface TagCount {
+  tag: string;
+  count: number;
+}
