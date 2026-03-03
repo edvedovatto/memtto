@@ -276,6 +276,80 @@ export async function getFavorites(): Promise<Entry[]> {
   return (data as Entry[]) ?? [];
 }
 
+export async function getArchivedEntries(): Promise<Entry[]> {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) throw new Error("Not authenticated");
+
+  const { data, error } = await supabase
+    .from("entries")
+    .select("*")
+    .eq("user_id", user.id)
+    .eq("is_archived", true)
+    .order("updated_at", { ascending: false });
+
+  if (error) throw error;
+  return (data as Entry[]) ?? [];
+}
+
+export async function getAllEntries(): Promise<Entry[]> {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) throw new Error("Not authenticated");
+
+  const { data, error } = await supabase
+    .from("entries")
+    .select("*")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false });
+
+  if (error) throw error;
+  return (data as Entry[]) ?? [];
+}
+
+export async function renameContext(
+  oldName: string,
+  newName: string
+): Promise<void> {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) throw new Error("Not authenticated");
+
+  const { error } = await supabase
+    .from("entries")
+    .update({ context: newName })
+    .eq("user_id", user.id)
+    .eq("context", oldName);
+
+  if (error) throw error;
+}
+
+export async function deleteContext(name: string): Promise<void> {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) throw new Error("Not authenticated");
+
+  const { error } = await supabase
+    .from("entries")
+    .update({ context: "Uncategorized" })
+    .eq("user_id", user.id)
+    .eq("context", name);
+
+  if (error) throw error;
+}
+
 export async function getContexts(): Promise<string[]> {
   const supabase = createClient();
   const {

@@ -4,7 +4,12 @@ import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { SearchBar } from "@/components/search-bar";
 import { EntryCard } from "@/components/entry-card";
-import { searchEntries, getContexts, getFavorites } from "@/lib/services/entries";
+import {
+  searchEntries,
+  getContexts,
+  getFavorites,
+  getArchivedEntries,
+} from "@/lib/services/entries";
 import type { Entry } from "@/types";
 
 export default function HomePage() {
@@ -15,10 +20,37 @@ export default function HomePage() {
   const [favorites, setFavorites] = useState<Entry[]>([]);
   const [loading, setLoading] = useState(false);
   const [favScrolled, setFavScrolled] = useState(false);
+  const [viewFilter, setViewFilter] = useState<"all" | "favorites" | "archived">("all");
 
   const isActive = query.length >= 2;
 
   const fetchEntries = useCallback(async () => {
+    // View filter takes precedence
+    if (viewFilter === "favorites") {
+      setLoading(true);
+      try {
+        const results = await getFavorites();
+        setEntries(results);
+      } catch (err) {
+        console.error("Failed to fetch favorites:", err);
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+    if (viewFilter === "archived") {
+      setLoading(true);
+      try {
+        const results = await getArchivedEntries();
+        setEntries(results);
+      } catch (err) {
+        console.error("Failed to fetch archived:", err);
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
     if (!isActive && context === "") {
       setEntries([]);
       return;
@@ -35,7 +67,7 @@ export default function HomePage() {
     } finally {
       setLoading(false);
     }
-  }, [query, context, isActive]);
+  }, [query, context, isActive, viewFilter]);
 
   useEffect(() => {
     fetchEntries();
@@ -68,22 +100,54 @@ export default function HomePage() {
       if (tag) {
         setQuery(tag);
         setContext("");
+        setViewFilter("all");
       }
     }
     window.addEventListener("searchByTag", handleTagSearch);
     return () => window.removeEventListener("searchByTag", handleTagSearch);
   }, []);
 
+  // Sidebar: select context
+  useEffect(() => {
+    function handleSelectContext(e: Event) {
+      const ctx = (e as CustomEvent).detail;
+      if (ctx) {
+        setContext(ctx);
+        setQuery("");
+        setViewFilter("all");
+      }
+    }
+    window.addEventListener("selectContext", handleSelectContext);
+    return () => window.removeEventListener("selectContext", handleSelectContext);
+  }, []);
+
+  // Sidebar: select view (all / favorites / archived)
+  useEffect(() => {
+    function handleSelectView(e: Event) {
+      const view = (e as CustomEvent).detail as "all" | "favorites" | "archived";
+      if (view === "all") {
+        handleClear();
+      } else {
+        setViewFilter(view);
+        setQuery("");
+        setContext("");
+      }
+    }
+    window.addEventListener("selectView", handleSelectView);
+    return () => window.removeEventListener("selectView", handleSelectView);
+  }, []);
+
   function handleClear() {
     setQuery("");
     setContext("");
+    setViewFilter("all");
     setEntries([]);
   }
 
-  const showResults = isActive || context !== "";
+  const showResults = isActive || context !== "" || viewFilter !== "all";
 
   return (
-    <div className="relative flex flex-col" style={{ minHeight: "calc(100dvh - 109px)" }}>
+    <div className="relative flex flex-col min-h-[calc(100dvh-109px)] lg:min-h-screen">
       {/* Search container — centered when idle, top when active */}
       <div
         className={`relative z-10 flex w-full flex-col items-center transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${
@@ -153,9 +217,16 @@ export default function HomePage() {
             </div>
           ) : (
             <div className="space-y-4">
-              <p className="text-xs text-muted-foreground/50 fade-in-up">
-                {entries.length} {entries.length === 1 ? "result" : "results"}
-              </p>
+              <div className="flex items-center gap-2 fade-in-up">
+                {viewFilter !== "all" && (
+                  <span className="text-xs font-medium text-foreground/70 capitalize">
+                    {viewFilter === "favorites" ? "Favorites" : "Archived"}
+                  </span>
+                )}
+                <p className="text-xs text-muted-foreground/50">
+                  {entries.length} {entries.length === 1 ? "entry" : "entries"}
+                </p>
+              </div>
               <div className="flex flex-col gap-6">
                 {entries.map((entry, index) => (
                   <div
