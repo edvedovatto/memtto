@@ -371,6 +371,13 @@ export async function renameContext(
     .eq("context", oldName);
 
   if (error) throw error;
+
+  // Rename in context_settings too
+  await supabase
+    .from("context_settings")
+    .update({ name: newName })
+    .eq("user_id", user.id)
+    .eq("name", oldName);
 }
 
 export async function deleteContext(name: string): Promise<void> {
@@ -386,6 +393,56 @@ export async function deleteContext(name: string): Promise<void> {
     .update({ context: "Uncategorized" })
     .eq("user_id", user.id)
     .eq("context", name);
+
+  if (error) throw error;
+
+  // Remove from context_settings
+  await supabase
+    .from("context_settings")
+    .delete()
+    .eq("user_id", user.id)
+    .eq("name", name);
+}
+
+export async function getContextSettings(): Promise<Record<string, string>> {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) throw new Error("Not authenticated");
+
+  const { data, error } = await supabase
+    .from("context_settings")
+    .select("name, icon")
+    .eq("user_id", user.id);
+
+  if (error) throw error;
+
+  const map: Record<string, string> = {};
+  for (const row of data ?? []) {
+    map[row.name] = row.icon;
+  }
+  return map;
+}
+
+export async function setContextIcon(
+  name: string,
+  icon: string
+): Promise<void> {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) throw new Error("Not authenticated");
+
+  const { error } = await supabase
+    .from("context_settings")
+    .upsert(
+      { user_id: user.id, name, icon },
+      { onConflict: "user_id,name" }
+    );
 
   if (error) throw error;
 }

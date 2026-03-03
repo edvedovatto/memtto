@@ -11,6 +11,7 @@ import { SortDropdown } from "@/components/sort-dropdown";
 import {
   searchEntries,
   getContexts,
+  getContextSettings,
   getFavorites,
   getArchivedEntries,
 } from "@/lib/services/entries";
@@ -38,6 +39,7 @@ export default function HomePage() {
   const [context, setContext] = useState("");
   const [entries, setEntries] = useState<Entry[]>([]);
   const [contexts, setContexts] = useState<string[]>([]);
+  const [contextIcons, setContextIcons] = useState<Record<string, string>>({});
   const [favorites, setFavorites] = useState<Entry[]>([]);
   const [loading, setLoading] = useState(false);
   const [favScrolled, setFavScrolled] = useState(false);
@@ -108,6 +110,7 @@ export default function HomePage() {
 
   useEffect(() => {
     getContexts().then(setContexts).catch(console.error);
+    getContextSettings().then(setContextIcons).catch(console.error);
     loadFavorites();
   }, [loadFavorites]);
 
@@ -237,7 +240,7 @@ export default function HomePage() {
       {/* Desktop: Dashboard — only when idle */}
       {!showResults && (
         <div className="hidden lg:block w-full mt-8">
-          <Dashboard favorites={favorites} contexts={contexts} />
+          <Dashboard favorites={favorites} contexts={contexts} contextIcons={contextIcons} />
         </div>
       )}
 
@@ -333,7 +336,7 @@ export default function HomePage() {
                       animationFillMode: "forwards",
                     }}
                   >
-                    <EntryCard entry={entry} />
+                    <EntryCard entry={entry} contextIcons={contextIcons} />
                   </div>
                 ))}
               </div>

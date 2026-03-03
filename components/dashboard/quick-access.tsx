@@ -8,9 +8,10 @@ interface QuickAccessProps {
   favorites: Entry[];
   topTags: TagCount[];
   contextCounts: ContextCount[];
+  contextIcons?: Record<string, string>;
 }
 
-export function QuickAccess({ favorites, topTags, contextCounts }: QuickAccessProps) {
+export function QuickAccess({ favorites, topTags, contextCounts, contextIcons = {} }: QuickAccessProps) {
   function handleTagClick(tag: string) {
     window.dispatchEvent(new CustomEvent("searchByTag", { detail: tag }));
   }
@@ -81,7 +82,7 @@ export function QuickAccess({ favorites, topTags, contextCounts }: QuickAccessPr
       )}
 
       {/* By context */}
-      {contextCounts.length > 0 && <ContextBreakdown contexts={contextCounts} />}
+      {contextCounts.length > 0 && <ContextBreakdown contexts={contextCounts} contextIcons={contextIcons} />}
     </div>
   );
 }

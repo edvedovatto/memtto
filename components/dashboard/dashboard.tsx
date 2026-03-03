@@ -16,9 +16,10 @@ import type { Entry, DashboardStats, ContextCount, TagCount } from "@/types";
 interface DashboardProps {
   favorites: Entry[];
   contexts: string[];
+  contextIcons?: Record<string, string>;
 }
 
-export function Dashboard({ favorites, contexts }: DashboardProps) {
+export function Dashboard({ favorites, contexts, contextIcons = {} }: DashboardProps) {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [recent, setRecent] = useState<Entry[]>([]);
   const [contextCounts, setContextCounts] = useState<ContextCount[]>([]);
@@ -115,7 +116,7 @@ export function Dashboard({ favorites, contexts }: DashboardProps) {
           <RecentEntries entries={recent} />
         </div>
         <div className="xl:col-span-2">
-          <QuickAccess favorites={favorites} topTags={topTags} contextCounts={contextCounts} />
+          <QuickAccess favorites={favorites} topTags={topTags} contextCounts={contextCounts} contextIcons={contextIcons} />
         </div>
       </div>
     </div>

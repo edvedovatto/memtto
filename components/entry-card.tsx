@@ -5,6 +5,7 @@ import Link from "next/link";
 // eslint-disable-next-line @next/next/no-img-element
 import { Star, Heart } from "lucide-react";
 import { toggleFavorite } from "@/lib/services/entries";
+import { DEFAULT_CONTEXT_ICON } from "@/lib/context-icons";
 import type { Entry, ChecklistItem } from "@/types";
 
 function formatPrice(cents: number): string {
@@ -16,9 +17,10 @@ function formatPrice(cents: number): string {
 
 interface EntryCardProps {
   entry: Entry;
+  contextIcons?: Record<string, string>;
 }
 
-export const EntryCard = memo(function EntryCard({ entry }: EntryCardProps) {
+export const EntryCard = memo(function EntryCard({ entry, contextIcons = {} }: EntryCardProps) {
   const hasImage = !!entry.image_url;
   const [imageLayout, setImageLayout] = useState<"side" | "top">("side");
   const [isFav, setIsFav] = useState(entry.is_favorite);
@@ -84,7 +86,8 @@ export const EntryCard = memo(function EntryCard({ entry }: EntryCardProps) {
           <div className={`min-w-0 flex-1 ${hasImage && imageLayout === "side" ? "py-0.5 pr-1" : ""}`}>
             {/* Header: context badge, type, date, favorite */}
             <div className="mb-1.5 flex items-center gap-2 text-[11px] text-muted-foreground/60">
-              <span className="rounded border border-border px-1.5 py-0.5 font-medium text-muted-foreground">
+              <span className="flex items-center gap-1 rounded border border-border px-1.5 py-0.5 font-medium text-muted-foreground">
+                <span className="text-xs leading-none">{contextIcons[entry.context] || DEFAULT_CONTEXT_ICON}</span>
                 {entry.context}
               </span>
               <span>{entry.type}</span>

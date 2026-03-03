@@ -5,8 +5,10 @@ import { createPortal } from "react-dom";
 import { useParams, useRouter } from "next/navigation";
 import { ArrowLeft, ImagePlus, X, Star, ChevronDown, AlignLeft, ListChecks, Plus } from "lucide-react";
 import Link from "next/link";
-import { getEntryBySlug, updateEntry, getContexts } from "@/lib/services/entries";
+import { getEntryBySlug, updateEntry, getContexts, getContextSettings, setContextIcon } from "@/lib/services/entries";
 import { uploadImage } from "@/lib/services/storage";
+import { EmojiPicker } from "@/components/emoji-picker";
+import { DEFAULT_CONTEXT_ICON } from "@/lib/context-icons";
 import { toast } from "sonner";
 import type { Entry, ChecklistItem } from "@/types";
 
@@ -53,6 +55,8 @@ export default function EditEntryPage() {
   const [contextOpen, setContextOpen] = useState(false);
   const [showNewContext, setShowNewContext] = useState(false);
   const [newContextValue, setNewContextValue] = useState("");
+  const [newContextIcon, setNewContextIcon] = useState(DEFAULT_CONTEXT_ICON);
+  const [contextIcons, setContextIcons] = useState<Record<string, string>>({});
   const contextRef = useRef<HTMLDivElement>(null);
   const newContextRef = useRef<HTMLInputElement>(null);
   const tagInputRef = useRef<HTMLInputElement>(null);
@@ -64,9 +68,10 @@ export default function EditEntryPage() {
   useEffect(() => {
     async function load() {
       try {
-        const [data, ctxList] = await Promise.all([
+        const [data, ctxList, ctxIcons] = await Promise.all([
           getEntryBySlug(params.slug as string),
           getContexts(),
+          getContextSettings(),
         ]);
 
         if (!data) {
@@ -75,6 +80,7 @@ export default function EditEntryPage() {
         }
 
         setEntry(data);
+        setContextIcons(ctxIcons);
         setTitle(data.title);
         setContext(data.context);
         setType(data.type);
@@ -184,8 +190,11 @@ export default function EditEntryPage() {
       setContexts((prev) => [...prev, value].sort());
     }
     setContext(value);
+    setContextIcons((prev) => ({ ...prev, [value]: newContextIcon }));
+    setContextIcon(value, newContextIcon).catch(console.error);
     setShowNewContext(false);
     setNewContextValue("");
+    setNewContextIcon(DEFAULT_CONTEXT_ICON);
   }
 
   function addChecklistItem() {
@@ -426,7 +435,8 @@ export default function EditEntryPage() {
                   onClick={() => setContextOpen(!contextOpen)}
                   className="flex w-full items-center justify-between rounded-lg border border-border bg-secondary px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                 >
-                  <span className={context ? "text-foreground" : "text-muted-foreground"}>
+                  <span className={`flex items-center gap-1.5 ${context ? "text-foreground" : "text-muted-foreground"}`}>
+                    {context && <span className="text-sm leading-none">{contextIcons[context] || DEFAULT_CONTEXT_ICON}</span>}
                     {context || "Context"}
                   </span>
                   <ChevronDown className={`h-3.5 w-3.5 text-muted-foreground transition-transform ${contextOpen ? "rotate-180" : ""}`} />
@@ -441,12 +451,13 @@ export default function EditEntryPage() {
                         key={ctx}
                         type="button"
                         onClick={() => selectContext(ctx)}
-                        className={`block w-full px-4 py-2 text-left text-sm transition-colors ${
+                        className={`flex w-full items-center gap-2 px-4 py-2 text-left text-sm transition-colors ${
                           context === ctx
                             ? "bg-surface-hover text-foreground"
                             : "text-muted-foreground hover:bg-surface-hover hover:text-foreground"
                         }`}
                       >
+                        <span className="text-sm leading-none">{contextIcons[ctx] || DEFAULT_CONTEXT_ICON}</span>
                         {ctx}
                       </button>
                     ))}
@@ -466,6 +477,7 @@ export default function EditEntryPage() {
             </div>
             {showNewContext && (
               <div className="mt-1.5 flex gap-1.5">
+                <EmojiPicker value={newContextIcon} onChange={setNewContextIcon} size="sm" />
                 <input
                   ref={newContextRef}
                   type="text"
@@ -475,7 +487,7 @@ export default function EditEntryPage() {
                   }}
                   onKeyDown={(e) => {
                     if (e.key === "Enter") { e.preventDefault(); confirmNewContext(); }
-                    if (e.key === "Escape") { setShowNewContext(false); setNewContextValue(""); }
+                    if (e.key === "Escape") { setShowNewContext(false); setNewContextValue(""); setNewContextIcon(DEFAULT_CONTEXT_ICON); }
                   }}
                   placeholder="New context..."
                   maxLength={CONTEXT_MAX}
@@ -491,7 +503,7 @@ export default function EditEntryPage() {
                 </button>
                 <button
                   type="button"
-                  onClick={() => { setShowNewContext(false); setNewContextValue(""); }}
+                  onClick={() => { setShowNewContext(false); setNewContextValue(""); setNewContextIcon(DEFAULT_CONTEXT_ICON); }}
                   className="rounded-lg border border-border px-2.5 py-2.5 text-muted-foreground transition-colors hover:text-foreground"
                 >
                   <X className="h-4 w-4" />

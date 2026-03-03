@@ -7,10 +7,14 @@ import { toast } from "sonner";
 import { getCurrentUser, updatePassword } from "@/lib/services/auth";
 import {
   getContexts,
+  getContextSettings,
+  setContextIcon as saveContextIcon,
   renameContext,
   deleteContext,
   getAllEntries,
 } from "@/lib/services/entries";
+import { EmojiPicker } from "@/components/emoji-picker";
+import { DEFAULT_CONTEXT_ICON } from "@/lib/context-icons";
 import type { Entry } from "@/types";
 
 const inputClass =
@@ -29,6 +33,7 @@ export default function SettingsPage() {
 
   // Contexts
   const [contexts, setContexts] = useState<string[]>([]);
+  const [contextIcons, setContextIcons] = useState<Record<string, string>>({});
   const [editingCtx, setEditingCtx] = useState<string | null>(null);
   const [editValue, setEditValue] = useState("");
   const [deletingCtx, setDeletingCtx] = useState<string | null>(null);
@@ -57,6 +62,7 @@ export default function SettingsPage() {
 
   function loadContexts() {
     getContexts().then(setContexts).catch(console.error);
+    getContextSettings().then(setContextIcons).catch(console.error);
   }
 
   // ── Password ──────────────────────────────
@@ -127,6 +133,16 @@ export default function SettingsPage() {
       );
     } finally {
       setCtxLoading(null);
+    }
+  }
+
+  async function handleIconChange(ctx: string, icon: string) {
+    setContextIcons((prev) => ({ ...prev, [ctx]: icon }));
+    try {
+      await saveContextIcon(ctx, icon);
+      window.dispatchEvent(new CustomEvent("contextSettingsChanged"));
+    } catch {
+      toast.error("Failed to update icon.");
     }
   }
 
@@ -301,8 +317,14 @@ export default function SettingsPage() {
               {contexts.map((ctx) => (
                 <div
                   key={ctx}
-                  className="flex items-center gap-2 rounded-lg border border-border bg-background px-4 py-2.5"
+                  className="flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-2"
                 >
+                  <EmojiPicker
+                    value={contextIcons[ctx] || DEFAULT_CONTEXT_ICON}
+                    onChange={(icon) => handleIconChange(ctx, icon)}
+                    size="sm"
+                  />
+
                   {editingCtx === ctx ? (
                     <input
                       autoFocus

@@ -1,12 +1,14 @@
 "use client";
 
+import { DEFAULT_CONTEXT_ICON } from "@/lib/context-icons";
 import type { ContextCount } from "@/types";
 
 interface ContextBreakdownProps {
   contexts: ContextCount[];
+  contextIcons?: Record<string, string>;
 }
 
-export function ContextBreakdown({ contexts }: ContextBreakdownProps) {
+export function ContextBreakdown({ contexts, contextIcons = {} }: ContextBreakdownProps) {
   if (contexts.length === 0) return null;
 
   const max = contexts[0]?.count ?? 1;
@@ -32,6 +34,7 @@ export function ContextBreakdown({ contexts }: ContextBreakdownProps) {
               animationFillMode: "forwards",
             }}
           >
+            <span className="flex-shrink-0 text-sm leading-none">{contextIcons[ctx.context] || DEFAULT_CONTEXT_ICON}</span>
             <span className="flex-shrink-0 text-sm text-foreground/80 group-hover:text-foreground">
               {ctx.context}
             </span>

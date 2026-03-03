@@ -7,7 +7,8 @@ import Link from "next/link";
 import Image from "next/image";
 import { ArrowLeft, Star, Pencil, Trash2, Heart, Archive, X } from "lucide-react";
 import { EmptyState } from "@/components/empty-state";
-import { getEntryBySlug, deleteEntry, createEntry, toggleChecklistItem, toggleFavorite, toggleArchive } from "@/lib/services/entries";
+import { getEntryBySlug, deleteEntry, createEntry, toggleChecklistItem, toggleFavorite, toggleArchive, getContextSettings } from "@/lib/services/entries";
+import { DEFAULT_CONTEXT_ICON } from "@/lib/context-icons";
 import { toast } from "sonner";
 import type { Entry, ChecklistItem } from "@/types";
 
@@ -29,6 +30,7 @@ export default function EntryDetailPage() {
   const [checklistItems, setChecklistItems] = useState<ChecklistItem[]>([]);
   const [isFav, setIsFav] = useState(false);
   const [isArchived, setIsArchived] = useState(false);
+  const [contextIcons, setContextIcons] = useState<Record<string, string>>({});
   const [exiting, setExiting] = useState(false);
   const [lightboxOpen, setLightboxOpen] = useState(false);
   const [closingLightbox, setClosingLightbox] = useState(false);
@@ -55,6 +57,7 @@ export default function EntryDetailPage() {
       }
     }
     load();
+    getContextSettings().then(setContextIcons).catch(console.error);
   }, [params.slug]);
 
   async function handleToggleItem(index: number) {
@@ -266,7 +269,8 @@ export default function EntryDetailPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <span className="rounded-md bg-secondary px-2.5 py-1 text-sm text-muted-foreground">
+          <span className="flex items-center gap-1.5 rounded-md bg-secondary px-2.5 py-1 text-sm text-muted-foreground">
+            <span className="text-sm leading-none">{contextIcons[entry.context] || DEFAULT_CONTEXT_ICON}</span>
             {entry.context}
           </span>
           <span className="rounded-md bg-secondary px-2.5 py-1 text-sm text-muted-foreground">

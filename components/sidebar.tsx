@@ -4,27 +4,36 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
 import { Plus, LogOut, Layers, Heart, Archive, Settings } from "lucide-react";
-import { getContexts } from "@/lib/services/entries";
+import { getContexts, getContextSettings } from "@/lib/services/entries";
 import { signOut } from "@/lib/services/auth";
+import { DEFAULT_CONTEXT_ICON } from "@/lib/context-icons";
 
 export function Sidebar() {
   const router = useRouter();
   const pathname = usePathname();
   const [contexts, setContexts] = useState<string[]>([]);
+  const [contextIcons, setContextIcons] = useState<Record<string, string>>({});
   const [activeView, setActiveView] = useState<string>("all");
   const [activeContext, setActiveContext] = useState<string>("");
 
-  useEffect(() => {
+  function loadContexts() {
     getContexts().then(setContexts).catch(console.error);
+    getContextSettings().then(setContextIcons).catch(console.error);
+  }
+
+  useEffect(() => {
+    loadContexts();
   }, []);
 
   // Refresh contexts when entries change
   useEffect(() => {
-    const handler = () => {
-      getContexts().then(setContexts).catch(console.error);
-    };
+    const handler = () => loadContexts();
     window.addEventListener("favoritesChanged", handler);
-    return () => window.removeEventListener("favoritesChanged", handler);
+    window.addEventListener("contextSettingsChanged", handler);
+    return () => {
+      window.removeEventListener("favoritesChanged", handler);
+      window.removeEventListener("contextSettingsChanged", handler);
+    };
   }, []);
 
   // Reset highlight when search is reset
@@ -129,7 +138,7 @@ export function Sidebar() {
                 onClick={() => handleContextClick(ctx)}
                 className={`${navItemBase} ${activeContext === ctx ? navItemActive : navItemIdle}`}
               >
-                <span className="h-2 w-2 rounded-full bg-accent/40" />
+                <span className="text-base leading-none">{contextIcons[ctx] || DEFAULT_CONTEXT_ICON}</span>
                 {ctx}
               </button>
             ))}
