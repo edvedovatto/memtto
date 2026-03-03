@@ -29,13 +29,13 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="dark">
+    <html lang="en" className="dark h-dvh overflow-hidden">
       <head>
         <link rel="icon" type="image/svg+xml" href="/icon-192.svg" />
         <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png" />
         <link rel="apple-touch-icon" href="/icon-192.png" />
       </head>
-      <body className={inter.className}>
+      <body className={`${inter.className} h-dvh overflow-hidden`}>
         {children}
         <Toaster
           theme="dark"

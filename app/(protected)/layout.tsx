@@ -11,9 +11,9 @@ export default function ProtectedLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="flex h-dvh flex-col bg-background lg:flex-row">
       {/* Mobile header — hidden on desktop */}
-      <div className="lg:hidden">
+      <div className="flex-shrink-0 lg:hidden">
         <Header />
       </div>
 
@@ -22,10 +22,12 @@ export default function ProtectedLayout({
       <CommandPalette />
       <KeyboardShortcutsProvider />
 
-      {/* Main content — offset by sidebar on desktop */}
-      <main className="mx-auto max-w-2xl px-4 py-6 lg:ml-64 lg:max-w-5xl lg:px-8">
-        <div className="fade-in-up" style={{ opacity: 0, animationFillMode: "forwards" }}>
-          {children}
+      {/* Main content — scrollable area */}
+      <main className="flex-1 overflow-y-auto overscroll-none lg:ml-64">
+        <div className="mx-auto max-w-2xl px-4 py-6 lg:max-w-5xl lg:px-8">
+          <div className="fade-in-up" style={{ opacity: 0, animationFillMode: "forwards" }}>
+            {children}
+          </div>
         </div>
       </main>
     </div>

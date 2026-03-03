@@ -181,7 +181,7 @@ export default function HomePage() {
   const showResults = isActive || context !== "" || viewFilter !== "all" || typeFilter !== "";
 
   return (
-    <div className="relative flex flex-col min-h-[calc(100dvh-109px)] lg:min-h-screen">
+    <div className="relative flex flex-col min-h-full">
       {/* Search container — centered when idle (mobile), top when active or desktop */}
       <div
         className={`relative z-10 flex w-full flex-col items-center transition-all duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] ${

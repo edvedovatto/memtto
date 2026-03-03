@@ -5,11 +5,13 @@
 html {
   scrollbar-gutter: stable;
   scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
+  overscroll-behavior: none;
 }
 
 body {
   background-color: #0d1117;
   color: #e6edf3;
+  overscroll-behavior: none;
 }
 
 @keyframes fade-in-up {
