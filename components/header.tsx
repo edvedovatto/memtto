@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Plus, LogOut, Settings, Target } from "lucide-react";
+import { Plus, LogOut, Settings } from "lucide-react";
 import { signOut } from "@/lib/services/auth";
 
 export function Header() {
@@ -31,12 +31,6 @@ export function Header() {
           >
             <Plus className="h-4 w-4" />
             New
-          </Link>
-          <Link
-            href="/habits"
-            className="btn-press rounded-lg border border-border p-2 text-muted-foreground transition-colors hover:bg-surface-hover hover:text-foreground"
-          >
-            <Target className="h-4 w-4" />
           </Link>
           <Link
             href="/settings"
