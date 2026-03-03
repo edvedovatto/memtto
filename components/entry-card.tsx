@@ -5,7 +5,7 @@ import Link from "next/link";
 // eslint-disable-next-line @next/next/no-img-element
 import { Star, Heart } from "lucide-react";
 import { toggleFavorite } from "@/lib/services/entries";
-import { DEFAULT_CONTEXT_ICON } from "@/lib/context-icons";
+import { ContextIcon } from "@/components/context-icon";
 import type { Entry, ChecklistItem } from "@/types";
 
 function formatPrice(cents: number): string {
@@ -87,7 +87,7 @@ export const EntryCard = memo(function EntryCard({ entry, contextIcons = {} }: E
             {/* Header: context badge, type, date, favorite */}
             <div className="mb-1.5 flex items-center gap-2 text-[11px] text-muted-foreground/60">
               <span className="flex items-center gap-1 rounded border border-border px-1.5 py-0.5 font-medium text-muted-foreground">
-                <span className="text-xs leading-none">{contextIcons[entry.context] || DEFAULT_CONTEXT_ICON}</span>
+                <ContextIcon name={contextIcons[entry.context]} className="h-3.5 w-3.5" />
                 {entry.context}
               </span>
               <span>{entry.type}</span>

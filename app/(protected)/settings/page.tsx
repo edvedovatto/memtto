@@ -13,7 +13,7 @@ import {
   deleteContext,
   getAllEntries,
 } from "@/lib/services/entries";
-import { EmojiPicker } from "@/components/emoji-picker";
+import { IconPicker } from "@/components/icon-picker";
 import { DEFAULT_CONTEXT_ICON } from "@/lib/context-icons";
 import type { Entry } from "@/types";
 
@@ -319,10 +319,9 @@ export default function SettingsPage() {
                   key={ctx}
                   className="flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-2"
                 >
-                  <EmojiPicker
+                  <IconPicker
                     value={contextIcons[ctx] || DEFAULT_CONTEXT_ICON}
                     onChange={(icon) => handleIconChange(ctx, icon)}
-                    size="sm"
                   />
 
                   {editingCtx === ctx ? (

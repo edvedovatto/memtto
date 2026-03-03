@@ -7,7 +7,8 @@ import { ArrowLeft, ImagePlus, X, Star, ChevronDown, AlignLeft, ListChecks, Plus
 import Link from "next/link";
 import { createEntry, getContexts, getContextSettings, setContextIcon } from "@/lib/services/entries";
 import { uploadImage } from "@/lib/services/storage";
-import { EmojiPicker } from "@/components/emoji-picker";
+import { IconPicker } from "@/components/icon-picker";
+import { ContextIcon } from "@/components/context-icon";
 import { DEFAULT_CONTEXT_ICON } from "@/lib/context-icons";
 import { toast } from "sonner";
 
@@ -359,7 +360,7 @@ export default function NewEntryPage() {
                   className="flex w-full items-center justify-between rounded-lg border border-border bg-secondary px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
                 >
                   <span className={`flex items-center gap-1.5 ${context ? "text-foreground" : "text-muted-foreground"}`}>
-                    {context && <span className="text-sm leading-none">{contextIcons[context] || DEFAULT_CONTEXT_ICON}</span>}
+                    {context && <ContextIcon name={contextIcons[context]} className="h-4 w-4" />}
                     {context || "Context"}
                   </span>
                   <ChevronDown className={`h-3.5 w-3.5 text-muted-foreground transition-transform ${contextOpen ? "rotate-180" : ""}`} />
@@ -380,7 +381,7 @@ export default function NewEntryPage() {
                             : "text-muted-foreground hover:bg-surface-hover hover:text-foreground"
                         }`}
                       >
-                        <span className="text-sm leading-none">{contextIcons[ctx] || DEFAULT_CONTEXT_ICON}</span>
+                        <ContextIcon name={contextIcons[ctx]} className="h-4 w-4" />
                         {ctx}
                       </button>
                     ))}
@@ -400,7 +401,7 @@ export default function NewEntryPage() {
             </div>
             {showNewContext && (
               <div className="mt-1.5 flex gap-1.5">
-                <EmojiPicker value={newContextIcon} onChange={setNewContextIcon} size="sm" />
+                <IconPicker value={newContextIcon} onChange={setNewContextIcon} />
                 <input
                   ref={newContextRef}
                   type="text"

@@ -6,7 +6,7 @@ import { useRouter, usePathname } from "next/navigation";
 import { Plus, LogOut, Layers, Heart, Archive, Settings } from "lucide-react";
 import { getContexts, getContextSettings } from "@/lib/services/entries";
 import { signOut } from "@/lib/services/auth";
-import { DEFAULT_CONTEXT_ICON } from "@/lib/context-icons";
+import { ContextIcon } from "@/components/context-icon";
 
 export function Sidebar() {
   const router = useRouter();
@@ -138,7 +138,7 @@ export function Sidebar() {
                 onClick={() => handleContextClick(ctx)}
                 className={`${navItemBase} ${activeContext === ctx ? navItemActive : navItemIdle}`}
               >
-                <span className="text-base leading-none">{contextIcons[ctx] || DEFAULT_CONTEXT_ICON}</span>
+                <ContextIcon name={contextIcons[ctx]} className="h-4 w-4" />
                 {ctx}
               </button>
             ))}

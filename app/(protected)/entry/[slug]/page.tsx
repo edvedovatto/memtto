@@ -8,7 +8,7 @@ import Image from "next/image";
 import { ArrowLeft, Star, Pencil, Trash2, Heart, Archive, X } from "lucide-react";
 import { EmptyState } from "@/components/empty-state";
 import { getEntryBySlug, deleteEntry, createEntry, toggleChecklistItem, toggleFavorite, toggleArchive, getContextSettings } from "@/lib/services/entries";
-import { DEFAULT_CONTEXT_ICON } from "@/lib/context-icons";
+import { ContextIcon } from "@/components/context-icon";
 import { toast } from "sonner";
 import type { Entry, ChecklistItem } from "@/types";
 
@@ -270,7 +270,7 @@ export default function EntryDetailPage() {
         </div>
         <div className="flex items-center gap-2">
           <span className="flex items-center gap-1.5 rounded-md bg-secondary px-2.5 py-1 text-sm text-muted-foreground">
-            <span className="text-sm leading-none">{contextIcons[entry.context] || DEFAULT_CONTEXT_ICON}</span>
+            <ContextIcon name={contextIcons[entry.context]} className="h-4 w-4" />
             {entry.context}
           </span>
           <span className="rounded-md bg-secondary px-2.5 py-1 text-sm text-muted-foreground">

@@ -1,6 +1,6 @@
 "use client";
 
-import { DEFAULT_CONTEXT_ICON } from "@/lib/context-icons";
+import { ContextIcon } from "@/components/context-icon";
 import type { ContextCount } from "@/types";
 
 interface ContextBreakdownProps {
@@ -34,7 +34,7 @@ export function ContextBreakdown({ contexts, contextIcons = {} }: ContextBreakdo
               animationFillMode: "forwards",
             }}
           >
-            <span className="flex-shrink-0 text-sm leading-none">{contextIcons[ctx.context] || DEFAULT_CONTEXT_ICON}</span>
+            <ContextIcon name={contextIcons[ctx.context]} className="h-4 w-4 flex-shrink-0" />
             <span className="flex-shrink-0 text-sm text-foreground/80 group-hover:text-foreground">
               {ctx.context}
             </span>
