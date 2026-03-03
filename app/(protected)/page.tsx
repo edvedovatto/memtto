@@ -8,7 +8,6 @@ import { EntryCardSkeleton } from "@/components/entry-card-skeleton";
 import { EmptyState } from "@/components/empty-state";
 import { Dashboard } from "@/components/dashboard/dashboard";
 import { SortDropdown } from "@/components/sort-dropdown";
-import { BulkActionBar } from "@/components/bulk-action-bar";
 import {
   searchEntries,
   getContexts,
@@ -46,8 +45,6 @@ export default function HomePage() {
   const [typeFilter, setTypeFilter] = useState<EntryType | "">("");
   const [sortField, setSortField] = useState<SortField>("created_at");
   const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
-  const [selectionMode, setSelectionMode] = useState(false);
-  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const isActive = query.length >= 2;
 
@@ -176,33 +173,7 @@ export default function HomePage() {
     setViewFilter("all");
     setTypeFilter("");
     setEntries([]);
-    clearSelection();
   }
-
-  function toggleSelect(id: string) {
-    setSelectedIds((prev) => {
-      const next = new Set(prev);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  }
-
-  function clearSelection() {
-    setSelectionMode(false);
-    setSelectedIds(new Set());
-  }
-
-  // Escape exits selection mode
-  useEffect(() => {
-    function handleKeyDown(e: KeyboardEvent) {
-      if (e.key === "Escape" && selectionMode) {
-        clearSelection();
-      }
-    }
-    document.addEventListener("keydown", handleKeyDown);
-    return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [selectionMode]);
 
   const showResults = isActive || context !== "" || viewFilter !== "all" || typeFilter !== "";
 
@@ -343,17 +314,7 @@ export default function HomePage() {
                 <p className="text-xs text-muted-foreground/50">
                   {entries.length} {entries.length === 1 ? "entry" : "entries"}
                 </p>
-                <div className="ml-auto flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => {
-                      if (selectionMode) clearSelection();
-                      else setSelectionMode(true);
-                    }}
-                    className="text-xs text-muted-foreground/50 transition-colors hover:text-foreground"
-                  >
-                    {selectionMode ? "Cancel" : "Select"}
-                  </button>
+                <div className="ml-auto">
                   <SortDropdown
                     field={sortField}
                     order={sortOrder}
@@ -372,30 +333,13 @@ export default function HomePage() {
                       animationFillMode: "forwards",
                     }}
                   >
-                    <EntryCard
-                      entry={entry}
-                      selectionMode={selectionMode}
-                      isSelected={selectedIds.has(entry.id)}
-                      onToggleSelect={toggleSelect}
-                    />
+                    <EntryCard entry={entry} />
                   </div>
                 ))}
               </div>
             </div>
           )}
         </div>
-      )}
-
-      {selectionMode && selectedIds.size > 0 && (
-        <BulkActionBar
-          selectedCount={selectedIds.size}
-          selectedIds={selectedIds}
-          onComplete={() => {
-            clearSelection();
-            fetchEntries();
-          }}
-          onCancel={clearSelection}
-        />
       )}
     </div>
   );
