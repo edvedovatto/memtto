@@ -617,61 +617,63 @@ export default function EditEntryPage() {
           </div>
         </div>
 
-        {/* Right: Image */}
-        {imagePreview ? (
-          <div className="overflow-hidden rounded-lg border border-border bg-secondary">
-            <button
-              type="button"
-              onClick={() => {
-                setShowImagePreview(true);
-                document.body.style.overflow = "hidden";
-              }}
-              className="aspect-square w-full overflow-hidden cursor-zoom-in"
-            >
-              <img
-                src={imagePreview}
-                alt="Preview"
-                className="h-full w-full object-cover"
-              />
-            </button>
-            <div className="flex items-center justify-between px-3 py-2">
-              <span className="max-w-[60%] truncate text-[11px] text-muted-foreground">
-                {imageName || "image"}
-              </span>
+        {/* Right: Image + Save */}
+        <div className="flex flex-col gap-3">
+          {imagePreview ? (
+            <div className="overflow-hidden rounded-lg border border-border bg-secondary">
               <button
                 type="button"
-                onClick={removeImage}
-                className="flex items-center gap-1 text-[11px] text-muted-foreground transition-colors hover:text-destructive"
+                onClick={() => {
+                  setShowImagePreview(true);
+                  document.body.style.overflow = "hidden";
+                }}
+                className="aspect-square w-full overflow-hidden cursor-zoom-in"
               >
-                <X className="h-3 w-3" />
-                Remove
+                <img
+                  src={imagePreview}
+                  alt="Preview"
+                  className="h-full w-full object-cover"
+                />
               </button>
+              <div className="flex items-center justify-between px-3 py-2">
+                <span className="max-w-[60%] truncate text-[11px] text-muted-foreground">
+                  {imageName || "image"}
+                </span>
+                <button
+                  type="button"
+                  onClick={removeImage}
+                  className="flex items-center gap-1 text-[11px] text-muted-foreground transition-colors hover:text-destructive"
+                >
+                  <X className="h-3 w-3" />
+                  Remove
+                </button>
+              </div>
             </div>
-          </div>
-        ) : (
-          <label className="flex aspect-square cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border text-sm text-muted-foreground transition-colors hover:border-foreground hover:text-foreground">
-            <ImagePlus className="h-6 w-6" />
-            <span>Attach image</span>
-            <span className="text-[11px] text-muted-foreground/40">JPG, PNG, WebP, GIF</span>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={handleImageChange}
-              className="hidden"
-            />
-          </label>
-        )}
+          ) : (
+            <label className="flex aspect-square cursor-pointer flex-col items-center justify-center gap-2 rounded-lg border border-dashed border-border text-sm text-muted-foreground transition-colors hover:border-foreground hover:text-foreground">
+              <ImagePlus className="h-6 w-6" />
+              <span>Attach image</span>
+              <span className="text-[11px] text-muted-foreground/40">JPG, PNG, WebP, GIF</span>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={handleImageChange}
+                className="hidden"
+              />
+            </label>
+          )}
+
+          {error && <p className="text-xs text-destructive">{error}</p>}
+
+          <button
+            type="submit"
+            disabled={loading || !title.trim() || !context.trim() || !hasContent}
+            className="btn-press w-full rounded-lg bg-foreground py-3 text-sm font-medium text-background transition-all hover:opacity-90 disabled:opacity-50"
+          >
+            {loading ? "Saving..." : "Save changes"}
+          </button>
+        </div>
       </div>
-
-      {error && <p className="text-xs text-destructive">{error}</p>}
-
-      <button
-        type="submit"
-        disabled={loading || !title.trim() || !context.trim() || !hasContent}
-        className="btn-press w-full rounded-lg bg-foreground py-3 text-sm font-medium text-background transition-all hover:opacity-90 disabled:opacity-50"
-      >
-        {loading ? "Saving..." : "Save changes"}
-      </button>
     </form>
 
     {/* Image preview lightbox — portal to body to avoid transform containment */}
