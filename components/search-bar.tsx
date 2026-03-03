@@ -11,6 +11,9 @@ interface SearchBarProps {
   contexts?: string[];
   selectedContext?: string;
   onContextChange?: (context: string) => void;
+  types?: string[];
+  selectedType?: string;
+  onTypeChange?: (type: string) => void;
   placeholder?: string;
   className?: string;
   size?: "default" | "lg";
@@ -23,12 +26,17 @@ export function SearchBar({
   contexts = [],
   selectedContext = "",
   onContextChange,
+  types = [],
+  selectedType = "",
+  onTypeChange,
   placeholder = "Search your memories...",
   className,
   size = "default",
 }: SearchBarProps) {
   const [contextOpen, setContextOpen] = useState(false);
+  const [typeOpen, setTypeOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const typeDropdownRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Only autofocus on desktop (>= 768px) to avoid keyboard covering content on mobile
@@ -43,14 +51,20 @@ export function SearchBar({
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
         setContextOpen(false);
       }
+      if (typeDropdownRef.current && !typeDropdownRef.current.contains(e.target as Node)) {
+        setTypeOpen(false);
+      }
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const showContextSelector = contexts.length > 0 && onContextChange;
+  const showTypeSelector = types.length > 0 && onTypeChange;
   const showClear = value.length > 0 && onClear;
   const contextLabel = selectedContext || "All";
+  const typeLabel = selectedType ? selectedType.charAt(0).toUpperCase() + selectedType.slice(1) : "Type";
+  const dropdownCount = (showContextSelector ? 1 : 0) + (showTypeSelector ? 1 : 0);
 
   return (
     <div className={cn("relative", className)}>
@@ -72,11 +86,15 @@ export function SearchBar({
           size === "lg"
             ? "py-4 pl-12 text-base"
             : "py-3 pl-11 text-sm",
-          showClear && showContextSelector
+          showClear && dropdownCount === 2
+            ? size === "lg" ? "pr-52" : "pr-48"
+            : showClear && dropdownCount === 1
             ? size === "lg" ? "pr-40" : "pr-36"
             : showClear
             ? size === "lg" ? "pr-14" : "pr-12"
-            : showContextSelector
+            : dropdownCount === 2
+            ? size === "lg" ? "pr-40" : "pr-36"
+            : dropdownCount === 1
             ? size === "lg" ? "pr-28" : "pr-24"
             : "pr-4"
         )}
@@ -90,6 +108,57 @@ export function SearchBar({
           >
             <X className={cn(size === "lg" ? "h-5 w-5" : "h-4 w-4")} />
           </button>
+        )}
+        {showTypeSelector && (
+          <div ref={typeDropdownRef} className="relative">
+            <button
+              type="button"
+              onClick={() => setTypeOpen(!typeOpen)}
+              className={cn(
+                "flex items-center gap-1 rounded-full border border-border bg-surface px-3 text-xs transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] hover:text-foreground hover:bg-surface-hover",
+                selectedType ? "text-foreground" : "text-muted-foreground",
+                size === "lg" ? "py-1.5" : "py-1"
+              )}
+            >
+              {typeLabel}
+              <ChevronDown className={`h-3 w-3 transition-transform duration-200 ${typeOpen ? "rotate-180" : ""}`} />
+            </button>
+            {typeOpen && (
+              <div className="absolute right-0 top-full z-50 mt-1 min-w-[120px] animate-slide-down-fade rounded-lg border border-border bg-surface py-1 shadow-lg">
+                <button
+                  onClick={() => {
+                    onTypeChange!("");
+                    setTypeOpen(false);
+                  }}
+                  className={cn(
+                    "block w-full px-3 py-2.5 text-left text-sm transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]",
+                    selectedType === ""
+                      ? "text-foreground bg-surface-hover"
+                      : "text-muted-foreground hover:text-foreground hover:bg-surface-hover"
+                  )}
+                >
+                  All types
+                </button>
+                {types.map((t) => (
+                  <button
+                    key={t}
+                    onClick={() => {
+                      onTypeChange!(t);
+                      setTypeOpen(false);
+                    }}
+                    className={cn(
+                      "block w-full px-3 py-2.5 text-left text-sm capitalize transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)]",
+                      selectedType === t
+                        ? "text-foreground bg-surface-hover"
+                        : "text-muted-foreground hover:text-foreground hover:bg-surface-hover"
+                    )}
+                  >
+                    {t}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         )}
         {showContextSelector && (
           <div ref={dropdownRef} className="relative">
@@ -108,7 +177,7 @@ export function SearchBar({
               <div className="absolute right-0 top-full z-50 mt-1 min-w-[120px] animate-slide-down-fade rounded-lg border border-border bg-surface py-1 shadow-lg">
                 <button
                   onClick={() => {
-                    onContextChange("");
+                    onContextChange!("");
                     setContextOpen(false);
                   }}
                   className={cn(
@@ -124,7 +193,7 @@ export function SearchBar({
                   <button
                     key={ctx}
                     onClick={() => {
-                      onContextChange(ctx);
+                      onContextChange!(ctx);
                       setContextOpen(false);
                     }}
                     className={cn(

@@ -7,13 +7,32 @@ import { EntryCard } from "@/components/entry-card";
 import { EntryCardSkeleton } from "@/components/entry-card-skeleton";
 import { EmptyState } from "@/components/empty-state";
 import { Dashboard } from "@/components/dashboard/dashboard";
+import { SortDropdown } from "@/components/sort-dropdown";
+import { BulkActionBar } from "@/components/bulk-action-bar";
 import {
   searchEntries,
   getContexts,
   getFavorites,
   getArchivedEntries,
 } from "@/lib/services/entries";
-import type { Entry } from "@/types";
+import type { Entry, EntryType, SortField, SortOrder } from "@/types";
+import { ENTRY_TYPES } from "@/types";
+
+function sortEntriesLocal(entries: Entry[], field: SortField, order: SortOrder): Entry[] {
+  return [...entries].sort((a, b) => {
+    let cmp = 0;
+    if (field === "title") {
+      cmp = a.title.localeCompare(b.title);
+    } else if (field === "rating") {
+      cmp = (a.rating ?? 0) - (b.rating ?? 0);
+    } else if (field === "price_cents") {
+      cmp = (a.price_cents ?? 0) - (b.price_cents ?? 0);
+    } else {
+      cmp = new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+    }
+    return order === "asc" ? cmp : -cmp;
+  });
+}
 
 export default function HomePage() {
   const [query, setQuery] = useState("");
@@ -24,6 +43,11 @@ export default function HomePage() {
   const [loading, setLoading] = useState(false);
   const [favScrolled, setFavScrolled] = useState(false);
   const [viewFilter, setViewFilter] = useState<"all" | "favorites" | "archived">("all");
+  const [typeFilter, setTypeFilter] = useState<EntryType | "">("");
+  const [sortField, setSortField] = useState<SortField>("created_at");
+  const [sortOrder, setSortOrder] = useState<SortOrder>("desc");
+  const [selectionMode, setSelectionMode] = useState(false);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
   const isActive = query.length >= 2;
 
@@ -32,7 +56,8 @@ export default function HomePage() {
     if (viewFilter === "favorites") {
       setLoading(true);
       try {
-        const results = await getFavorites();
+        let results = await getFavorites();
+        results = sortEntriesLocal(results, sortField, sortOrder);
         setEntries(results);
       } catch (err) {
         console.error("Failed to fetch favorites:", err);
@@ -44,7 +69,8 @@ export default function HomePage() {
     if (viewFilter === "archived") {
       setLoading(true);
       try {
-        const results = await getArchivedEntries();
+        let results = await getArchivedEntries();
+        results = sortEntriesLocal(results, sortField, sortOrder);
         setEntries(results);
       } catch (err) {
         console.error("Failed to fetch archived:", err);
@@ -54,7 +80,7 @@ export default function HomePage() {
       return;
     }
 
-    if (!isActive && context === "") {
+    if (!isActive && context === "" && typeFilter === "") {
       setEntries([]);
       return;
     }
@@ -63,6 +89,9 @@ export default function HomePage() {
       const results = await searchEntries({
         query: isActive ? query : undefined,
         context: context || undefined,
+        type: typeFilter || undefined,
+        sortBy: sortField,
+        sortOrder: sortOrder,
       });
       setEntries(results);
     } catch (err) {
@@ -70,7 +99,7 @@ export default function HomePage() {
     } finally {
       setLoading(false);
     }
-  }, [query, context, isActive, viewFilter]);
+  }, [query, context, isActive, viewFilter, typeFilter, sortField, sortOrder]);
 
   useEffect(() => {
     fetchEntries();
@@ -101,9 +130,10 @@ export default function HomePage() {
     function handleTagSearch(e: Event) {
       const tag = (e as CustomEvent).detail;
       if (tag) {
-        setQuery(tag);
+        setQuery("#" + tag);
         setContext("");
         setViewFilter("all");
+        setTypeFilter("");
       }
     }
     window.addEventListener("searchByTag", handleTagSearch);
@@ -144,10 +174,37 @@ export default function HomePage() {
     setQuery("");
     setContext("");
     setViewFilter("all");
+    setTypeFilter("");
     setEntries([]);
+    clearSelection();
   }
 
-  const showResults = isActive || context !== "" || viewFilter !== "all";
+  function toggleSelect(id: string) {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  function clearSelection() {
+    setSelectionMode(false);
+    setSelectedIds(new Set());
+  }
+
+  // Escape exits selection mode
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape" && selectionMode) {
+        clearSelection();
+      }
+    }
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [selectionMode]);
+
+  const showResults = isActive || context !== "" || viewFilter !== "all" || typeFilter !== "";
 
   return (
     <div className="relative flex flex-col min-h-[calc(100dvh-109px)] lg:min-h-screen">
@@ -164,6 +221,9 @@ export default function HomePage() {
           contexts={contexts}
           selectedContext={context}
           onContextChange={setContext}
+          types={[...ENTRY_TYPES]}
+          selectedType={typeFilter}
+          onTypeChange={(t) => setTypeFilter(t as EntryType | "")}
           size={showResults ? "default" : "lg"}
           className="relative z-20 w-full max-w-[720px]"
         />
@@ -283,6 +343,23 @@ export default function HomePage() {
                 <p className="text-xs text-muted-foreground/50">
                   {entries.length} {entries.length === 1 ? "entry" : "entries"}
                 </p>
+                <div className="ml-auto flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (selectionMode) clearSelection();
+                      else setSelectionMode(true);
+                    }}
+                    className="text-xs text-muted-foreground/50 transition-colors hover:text-foreground"
+                  >
+                    {selectionMode ? "Cancel" : "Select"}
+                  </button>
+                  <SortDropdown
+                    field={sortField}
+                    order={sortOrder}
+                    onChange={(f, o) => { setSortField(f); setSortOrder(o); }}
+                  />
+                </div>
               </div>
               <div className="flex flex-col gap-6">
                 {entries.map((entry, index) => (
@@ -295,13 +372,30 @@ export default function HomePage() {
                       animationFillMode: "forwards",
                     }}
                   >
-                    <EntryCard entry={entry} />
+                    <EntryCard
+                      entry={entry}
+                      selectionMode={selectionMode}
+                      isSelected={selectedIds.has(entry.id)}
+                      onToggleSelect={toggleSelect}
+                    />
                   </div>
                 ))}
               </div>
             </div>
           )}
         </div>
+      )}
+
+      {selectionMode && selectedIds.size > 0 && (
+        <BulkActionBar
+          selectedCount={selectedIds.size}
+          selectedIds={selectedIds}
+          onComplete={() => {
+            clearSelection();
+            fetchEntries();
+          }}
+          onCancel={clearSelection}
+        />
       )}
     </div>
   );

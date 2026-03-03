@@ -38,9 +38,26 @@ export type UpdateEntryInput = Partial<CreateEntryInput> & {
   is_favorite?: boolean;
 };
 
+export const ENTRY_TYPES = ["note", "idea", "snippet", "experience"] as const;
+export type EntryType = (typeof ENTRY_TYPES)[number];
+
+export type SortField = "created_at" | "title" | "rating" | "price_cents";
+export type SortOrder = "asc" | "desc";
+
+export const SORT_OPTIONS = [
+  { label: "Newest", field: "created_at" as SortField, order: "desc" as SortOrder },
+  { label: "Oldest", field: "created_at" as SortField, order: "asc" as SortOrder },
+  { label: "Title (A-Z)", field: "title" as SortField, order: "asc" as SortOrder },
+  { label: "Rating", field: "rating" as SortField, order: "desc" as SortOrder },
+  { label: "Price", field: "price_cents" as SortField, order: "desc" as SortOrder },
+] as const;
+
 export interface SearchParams {
   query?: string;
   context?: string;
+  type?: EntryType;
+  sortBy?: SortField;
+  sortOrder?: SortOrder;
 }
 
 export interface DashboardStats {

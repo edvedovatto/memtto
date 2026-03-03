@@ -82,20 +82,40 @@ export async function searchEntries(params: SearchParams): Promise<Entry[]> {
 
   if (!user) throw new Error("Not authenticated");
 
+  const sortField = params.sortBy || "created_at";
+  const ascending = params.sortOrder === "asc";
+
   let query = supabase
     .from("entries")
     .select("*")
     .eq("user_id", user.id)
-    .order("created_at", { ascending: false });
+    .order(sortField, { ascending, nullsFirst: false });
 
   if (params.query && params.query.length >= 2) {
-    query = query.or(
-      `title.ilike.%${params.query}%,content_text.ilike.%${params.query}%,tags.cs.{"${params.query}"}`
-    );
+    const trimmed = params.query.trim();
+    if (trimmed.startsWith("#") && trimmed.length >= 2) {
+      const tagName = trimmed.slice(1);
+      query = query.contains("tags", [tagName]);
+    } else if (trimmed.length >= 3) {
+      // Full-text search via tsvector (websearch handles multi-word + quotes)
+      query = query.textSearch("search_vector", trimmed, {
+        type: "websearch",
+        config: "english",
+      });
+    } else {
+      // Short queries (2 chars): fallback to ilike
+      query = query.or(
+        `title.ilike.%${trimmed}%,content_text.ilike.%${trimmed}%,tags.cs.{"${trimmed}"}`
+      );
+    }
   }
 
   if (params.context) {
     query = query.eq("context", params.context);
+  }
+
+  if (params.type) {
+    query = query.eq("type", params.type);
   }
 
   const { data, error } = await query;
@@ -478,4 +498,58 @@ export async function getTopTags(limit: number = 8): Promise<TagCount[]> {
     .map(([tag, count]) => ({ tag, count }))
     .sort((a, b) => b.count - a.count)
     .slice(0, limit);
+}
+
+export async function bulkDelete(ids: string[]): Promise<void> {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+
+  const { error } = await supabase
+    .from("entries")
+    .delete()
+    .eq("user_id", user.id)
+    .in("id", ids);
+
+  if (error) throw error;
+}
+
+export async function bulkToggleFavorite(
+  ids: string[],
+  isFavorite: boolean
+): Promise<void> {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+
+  const { error } = await supabase
+    .from("entries")
+    .update({ is_favorite: isFavorite })
+    .eq("user_id", user.id)
+    .in("id", ids);
+
+  if (error) throw error;
+}
+
+export async function bulkToggleArchive(
+  ids: string[],
+  isArchived: boolean
+): Promise<void> {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+
+  const { error } = await supabase
+    .from("entries")
+    .update({ is_archived: isArchived })
+    .eq("user_id", user.id)
+    .in("id", ids);
+
+  if (error) throw error;
 }

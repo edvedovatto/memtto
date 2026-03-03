@@ -87,12 +87,22 @@ export default function EntryDetailPage() {
   }
 
   useEffect(() => {
-    function handleEsc(e: KeyboardEvent) {
-      if (e.key === "Escape" && lightboxOpen) handleCloseLightbox();
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape" && lightboxOpen) {
+        handleCloseLightbox();
+        return;
+      }
+      if (e.metaKey || e.ctrlKey || e.altKey) return;
+      const tag = document.activeElement?.tagName.toLowerCase();
+      if (tag === "input" || tag === "textarea") return;
+      if (e.key.toLowerCase() === "f") {
+        e.preventDefault();
+        handleToggleFavorite();
+      }
     }
-    document.addEventListener("keydown", handleEsc);
-    return () => document.removeEventListener("keydown", handleEsc);
-  }, [lightboxOpen]);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, [lightboxOpen, isFav, entry]);
 
   async function handleToggleFavorite() {
     if (!entry) return;
